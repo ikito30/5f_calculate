@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Опросник 5F — РМК</title>
+    <style>
+        /* ===== ФИРМЕННЫЙ СТИЛЬ РМК ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f5f2ed;
+            font-family: 'Suisse Int\'l', 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 40px 45px;
+            border: 1px solid #e6ddd4;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2d2b2a;
+            margin-bottom: 6px;
+            letter-spacing: -0.2px;
+        }
+
+        h1 .copper {
+            color: #c8977f;
+        }
+
+        .subhead {
+            color: #4a4540;
+            font-size: 16px;
+            border-left: 4px solid #c8977f;
+            padding-left: 18px;
+            background: #f7f2ec;
+            border-radius: 0 12px 12px 0;
+            padding: 14px 20px;
+            margin: 16px 0 30px 0;
+        }
+
+        .scale-hint {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+            background: #eae3da;
+            padding: 14px 22px;
+            border-radius: 60px;
+            margin-bottom: 34px;
+            font-weight: 500;
+            color: #2d2b2a;
+            justify-content: center;
+        }
+
+        .scale-hint span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .scale-hint .badge {
+            display: inline-block;
+            background: #c8977f;
+            color: white;
+            font-weight: 700;
+            width: 24px;
+            height: 24px;
+            border-radius: 30px;
+            text-align: center;
+            line-height: 24px;
+            font-size: 14px;
+            margin-right: 4px;
+        }
+
+        .factor {
+            margin-top: 40px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 28px;
+        }
+
+        .factor:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .factor-title {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px 22px;
+            margin-bottom: 20px;
+        }
+
+        .factor-title h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d2b2a;
+            letter-spacing: -0.2px;
+            background: #eae3da;
+            padding: 0 16px 0 14px;
+            border-radius: 40px;
+            line-height: 44px;
+            display: inline-block;
+        }
+
+        .factor-avg {
+            font-size: 18px;
+            background: #c8977f;
+            color: white;
+            padding: 6px 22px;
+            border-radius: 40px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .factor-avg span {
+            font-weight: 700;
+            font-size: 22px;
+            margin: 0 4px;
+        }
+
+        .question-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .question-row {
+            display: grid;
+            grid-template-columns: 1fr 180px;
+            align-items: center;
+            gap: 12px 20px;
+            background: #faf8f5;
+            padding: 8px 16px 8px 20px;
+            border-radius: 40px;
+            transition: background 0.1s;
+            border: 2px solid transparent;
+        }
+
+        .question-row:hover {
+            background: #f3ede7;
+            border-color: #d6cbbc;
+        }
+
+        .question-row.missing {
+            border-color: #d9534f;
+            background: #fdf0ef;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .question-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #2d2b2a;
+            padding: 6px 0;
+        }
+
+        .question-text .qnum {
+            display: inline-block;
+            width: 28px;
+            font-weight: 500;
+            color: #c8977f;
+        }
+
+        .rating-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            background: white;
+            padding: 4px 6px;
+            border-radius: 60px;
+            border: 1px solid #d6cbbc;
+        }
+
+        .rating-group label {
+            flex: 1;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            color: #2d2b2a;
+            padding: 6px 0;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.1s;
+            background: transparent;
+            user-select: none;
+        }
+
+        .rating-group label:hover {
+            background: #eae3da;
+        }
+
+        .rating-group input[type="radio"] {
+            display: none;
+        }
+
+        .rating-group input[type="radio"]:checked+label {
+            background: #c8977f;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(200, 151, 127, 0.30);
+        }
+
+        .rating-group input[type="radio"]:checked+label:hover {
+            background: #b8866d;
+        }
+
+        .submit-area {
+            margin-top: 48px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 30px;
+            justify-content: space-between;
+            border-top: 2px solid #dcd3c9;
+            padding-top: 32px;
+        }
+
+        .btn {
+            background: #c8977f;
+            border: none;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 14px 46px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 18px rgba(200, 151, 127, 0.25);
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover {
+            background: #b07d65;
+            transform: scale(1.01);
+            box-shadow: 0 8px 24px rgba(200, 151, 127, 0.35);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-reset {
+            background: #dcd3c9;
+            color: #2d2b2a;
+            box-shadow: none;
+            font-weight: 500;
+            padding: 14px 30px;
+        }
+
+        .btn-reset:hover {
+            background: #ccc0b3;
+            box-shadow: none;
+        }
+
+        .summary-box {
+            background: #f7f2ec;
+            border-radius: 28px;
+            padding: 20px 30px;
+            margin-top: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px 30px;
+            border: 1px solid #e6ddd4;
+        }
+
+        .summary-item {
+            font-size: 17px;
+            font-weight: 500;
+            color: #2d2b2a;
+        }
+
+        .summary-item strong {
+            background: #c8977f;
+            color: white;
+            padding: 3px 18px;
+            border-radius: 40px;
+            margin-left: 8px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .summary-item .label {
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            font-size: 14px;
+            color: #6f655b;
+            text-align: right;
+        }
+
+        .error-message {
+            background: #fdf0ef;
+            border: 1px solid #d9534f;
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            color: #a94442;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .error-message .icon {
+            font-size: 24px;
+        }
+
+        @media (max-width: 720px) {
+            .container {
+                padding: 24px 18px;
+            }
+
+            .question-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+                padding: 14px 16px;
+                border-radius: 24px;
+            }
+
+            .rating-group {
+                max-width: 280px;
+            }
+
+            .question-text {
+                font-size: 14px;
+            }
+
+            .factor-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .scale-hint {
+                border-radius: 30px;
+                padding: 12px 16px;
+                font-size: 14px;
+                justify-content: flex-start;
+            }
+
+            .submit-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            .summary-box {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .summary-item {
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+
+        @media print {
+            .btn,
+            .btn-reset {
+                display: none;
+            }
+            .rating-group input[type="radio"]:checked+label {
+                background: #c8977f !important;
+                color: white !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+
+        <h1>Оценка команды <span class="copper">по модели 5F</span></h1>
+        <div class="subhead">
+            Оцените каждый критерий по шкале от 1 до 4. После заполнения всех пунктов нажмите «Рассчитать результаты».
+        </div>
+
+        <div class="scale-hint">
+            <span><span class="badge">4</span> реализовано полностью</span>
+            <span><span class="badge">3</span> по большей части</span>
+            <span><span class="badge">2</span> лишь частично</span>
+            <span><span class="badge">1</span> практически не реализовано</span>
+        </div>
+
+        <div id="errorContainer"></div>
+
+        <div id="factorsContainer"></div>
+
+        <div class="submit-area">
+            <div>
+                <button class="btn" id="calcBtn">Рассчитать результаты</button>
+                <button class="btn btn-reset" id="resetBtn" style="margin-left:12px;">Сбросить</button>
+            </div>
+            <div style="font-size:15px; color:#6f655b;">
+                все поля обязательны
+            </div>
+        </div>
+
+        <div id="summaryBlock" style="margin-top: 30px;"></div>
+
+        <div class="footer-note">
+            Опросник 5F · среднеарифметическое по каждому фактору
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- ДАННЫЕ ОПРОСНИКА ----------
+            const factors = [{
+                id: 'external',
+                title: 'Внешняя среда',
+                questions: [
+                    'В компании на регулярной основе проводится мониторинг внешней среды.',
+                    'Наиболее опасный конкурент компании определен, названы его сильные стороны.',
+                    'Все члены Команды знают основного конкурента и его сильные стороны.',
+                    'В компании сформулирована Философия и Миссия, отличающая её от конкурентов.',
+                    'Философия компании поощряет взаимоусиление, взаимопомощь, ориентацию на общую цель, ответственность за общий и личный результат.',
+                    'В компании сформулирована стратегия. Всем известны измеримые цели организации.',
+                    'Управленческая Команда является примером командного стиля для всей организации.',
+                    'В компании сформулированы стандарты поведения сотрудников, обязательные для всех.',
+                    'Система оплаты труда зависит не только от индивидуальной результативности, но и от общей результативности всей Команды.'
+                ]
+            }, {
+                id: 'goal',
+                title: 'Цель',
+                questions: [
+                    'Цели Команды известны всем членам Команды.',
+                    'Цели Команды амбициозны, их достижение требует напряжения.',
+                    'Цели Команды соответствуют критериям SMART.',
+                    'Реализация целей Команды требует усилий всех членов Команды.',
+                    'Цели охватывают как внешние, так и внутренние аспекты деятельности Команды.',
+                    'Цели контрастно выделяют Команду по отношению к конкурентам.',
+                    'Цели Команды сейчас включают новые по сравнению с предыдущим периодом параметры.',
+                    'Все члены Команды принимали участие в процессе формулирования целей Команды и в планировании их достижения.',
+                    'Вы лично воодушевлены целями Команды.'
+                ]
+            }, {
+                id: 'composition',
+                title: 'Состав',
+                questions: [
+                    'Состав Команды разнороден по полу, возрасту и опыту.',
+                    'Уровень компетенций каждого из членов Команды достаточен для реализации им своих функций.',
+                    'Вклады каждого члена Команды в общий результат очевидны и симметричны.',
+                    'Все члены Команды разделяют общие цели и прикладывают усилия для их достижения.',
+                    'Индивидуальные ценности никого из членов Команды не входят в противоречие с Философией Компании.',
+                    'Большим авторитетом в Команде пользуются люди с высокой результативностью и лояльностью Компании.',
+                    'Члены Команды, пользующиеся большим авторитетом, поддерживают Лидера и других коллег, которые исполняют роль лидера.',
+                    'В составе Команды представлены все командные роли, позволяющие организовать командную работу.',
+                    'В Команде отсутствуют люди, проявляющие разрушительные командные роли более чем 25% времени совместной работы.'
+                ]
+            }, {
+                id: 'leader',
+                title: 'Лидер',
+                questions: [
+                    'Лидер является примером в реализации задач, стоящих перед Командой.',
+                    'Лидер является примером в выполнении функций постановки целей и планирования, контроля, делегирования.',
+                    'Лидер использует процедуры коллективного обсуждения и принятия решений: мозговые штурмы, обсуждение проблем, обмен опытом.',
+                    'Значительное время (более 30%) Лидер посвящает обучению и развитию других членов Команды.',
+                    'Лидер применяет различные стили управления в соответствующих ситуациях.',
+                    'Лидер является примером проявлений Ценностей Компании.',
+                    'Лидер превосходит большую часть членов Команды по уровню целеустремленности, решительности и инициативы.',
+                    'Лидер эффективен в роли мотиватора и координатора.',
+                    'В зависимости от содержания задачи лидерство передается наиболее компетентному члену Команды, Лидер берет на себя другие роли (включая роль исполнителя).'
+                ]
+            }, {
+                id: 'interaction',
+                title: 'Взаимодействие',
+                questions: [
+                    'На проблемных совещаниях участники Команды открыто высказывают различные точки зрения.',
+                    'Члены Команды активно помогают развитию друг друга: осуществляют наставничество, информационный обмен, супервизию деятельности друг друга, взаимопомощь.',
+                    'Участники Команды дают обратную связь друг другу конструктивно: на основе фактов, исключая личностную критику, с ориентацией на будущий результат.',
+                    'Процедура постановки целей в Команде предполагает участие всех членов Команды.',
+                    'После принятия решения все члены Команды поддерживают принятые решения, варианты открытого и скрытого саботажа исключены.',
+                    'Про каждого члена Команды известно, над какими задачами он работает в данный момент.',
+                    'В Команде описаны и известны всем основные процедуры совместной работы.',
+                    'Принятые процедуры согласованы со стоящими перед Командой целями.',
+                    'Все члены Команды постоянно соблюдают принятые стандарты взаимодействия.'
+                ]
+            }];
+
+            // ---------- РЕНДЕР ----------
+            const container = document.getElementById('factorsContainer');
+
+            function renderQuestions() {
+                let html = '';
+                factors.forEach((factor, fi) => {
+                    html += `<div class="factor" data-factor="${factor.id}">`;
+                    html += `<div class="factor-title">
+                                <h2>${factor.title}</h2>
+                                <div class="factor-avg" id="avg_${factor.id}">ср. <span>—</span></div>
+                            </div>`;
+                    html += `<div class="question-grid">`;
+
+                    factor.questions.forEach((q, qi) => {
+                        const qIndex = fi * 9 + qi;
+                        html += `
+                                <div class="question-row" id="row_${qIndex}">
+                                    <div class="question-text"><span class="qnum">${qi+1}.</span> ${q}</div>
+                                    <div class="rating-group" data-q="${qIndex}">
+                                        ${[4,3,2,1].map(val => `
+                                            <input type="radio" name="q${qIndex}" id="q${qIndex}_${val}" value="${val}" />
+                                            <label for="q${qIndex}_${val}">${val}</label>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                    });
+
+                    html += `</div></div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            // ---------- ПРОВЕРКА ЗАПОЛНЕНИЯ + ПОДСВЕТКА ----------
+            function validateAndCalculate() {
+                const errorContainer = document.getElementById('errorContainer');
+                let missingFields = [];
+                let allFilled = true;
+
+                document.querySelectorAll('.question-row.missing').forEach(row => {
+                    row.classList.remove('missing');
+                });
+
+                factors.forEach((factor, fi) => {
+                    for (let qi = 0; qi < 9; qi++) {
+                        const qIndex = fi * 9 + qi;
+                        const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
+                        let checked = false;
+                        for (const r of radios) {
+                            if (r.checked) {
+                                checked = true;
+                                break;
+                            }
+                        }
+                        if (!checked) {
+                            allFilled = false;
+                            missingFields.push(qIndex);
+                            const row = document.getElementById(`row_${qIndex}`);
+                            if (row) {
+                                row.classList.add('missing');
+                            }
+                        }
+                    }
+                });
+
+                if (!allFilled) {
+                    const count = missingFields.length;
+                    errorContainer.innerHTML = `
+                        <div class="error-message">
+                            <span class="icon">!</span>
+                            <span>Заполните <strong>${count}</strong> ${getDeclension(count)}. Незаполненные поля выделены красным.</span>
+                        </div>
+                    `;
+                    
+                    if (missingFields.length > 0) {
+                        const firstMissing = document.getElementById(`row_${missingFields[0]}`);
+                        if (firstMissing) {
+                            firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                    
+                    document.getElementById('summaryBlock').innerHTML = '';
+                    factors.forEach(factor => {
+                        const el = document.getElementById(`avg_${factor.id}`);
+                        if (el) el.innerHTML = `ср. <span>—</span>`;
+                    });
+                    
+                    return false;
+                }
+
+                errorContainer.innerHTML = '';
+                calculateResults();
+                return true;
+            }
+
+            // ---------- СКЛОНЕНИЕ ----------
+            function getDeclension(count) {
+                if (count % 100 >= 11 && count % 100 <= 19) return 'полей';
+                const last = count % 10;
+                if (last === 1) return 'поле';
+                if (last >= 2 && last <= 4) return 'поля';
+                return 'полей';
+            }
+
+            // ---------- ПОДСЧЁТ ----------
+            function calculateResults() {
+                const results = {};
+                let allFilled = true;
+
+                factors.forEach((factor, fi) => {
+                    const values = [];
+                    for (let qi = 0; qi < 9; qi++) {
+                        const qIndex = fi * 9 + qi;
+                        const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
+                        let checked = false;
+                        for (const r of radios) {
+                            if (r.checked) {
+                                values.push(parseInt(r.value, 10));
+                                checked = true;
+                                break;
+                            }
+                        }
+                        if (!checked) allFilled = false;
+                    }
+
+                    if (values.length === 9) {
+                        const sum = values.reduce((a, b) => a + b, 0);
+                        const avg = sum / 9;
+                        results[factor.id] = Math.round(avg * 100) / 100;
+                    } else {
+                        results[factor.id] = null;
+                    }
+                });
+
+                factors.forEach(factor => {
+                    const el = document.getElementById(`avg_${factor.id}`);
+                    const val = results[factor.id];
+                    if (val !== null) {
+                        el.innerHTML = `ср. <span>${val}</span>`;
+                    } else {
+                        el.innerHTML = `ср. <span>—</span>`;
+                    }
+                });
+
+                const summaryBlock = document.getElementById('summaryBlock');
+                if (!allFilled) {
+                    summaryBlock.innerHTML = `
+                        <div class="summary-box" style="background:#f7f2ec; border:1px solid #d6cbbc;">
+                            <span style="color:#6f655b;">Заполните все пункты, чтобы увидеть итоговые средние.</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `<div class="summary-box">`;
+                const factorNames = {
+                    external: 'Внешняя среда',
+                    goal: 'Цель',
+                    composition: 'Состав',
+                    leader: 'Лидер',
+                    interaction: 'Взаимодействие'
+                };
+                factors.forEach(factor => {
+                    const val = results[factor.id];
+                    if (val !== null) {
+                        html += `<div class="summary-item">
+                                    <span class="label">${factorNames[factor.id] || factor.title}</span>
+                                    <strong>${val}</strong>
+                                </div>`;
+                    }
+                });
+                html += `</div>`;
+                summaryBlock.innerHTML = html;
+            }
+
+            // ---------- СБРОС ----------
+            function resetAll() {
+                const radios = document.querySelectorAll('input[type="radio"]');
+                radios.forEach(r => r.checked = false);
+                
+                document.querySelectorAll('.question-row.missing').forEach(row => {
+                    row.classList.remove('missing');
+                });
+                
+                factors.forEach(factor => {
+                    const el = document.getElementById(`avg_${factor.id}`);
+                    if (el) el.innerHTML = `ср. <span>—</span>`;
+                });
+                
+                document.getElementById('summaryBlock').innerHTML = `
+                    <div class="summary-box" style="background:#f7f2ec; border:1px solid #d6cbbc;">
+                        <span style="color:#6f655b;">После оценки всех пунктов нажмите «Рассчитать результаты».</span>
+                    </div>
+                `;
+                document.getElementById('errorContainer').innerHTML = '';
+            }
+
+            // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+            renderQuestions();
+
+            document.getElementById('calcBtn').addEventListener('click', validateAndCalculate);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+            resetAll();
+
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.matches('input[type="radio"]')) {
+                    const row = e.target.closest('.question-row');
+                    if (row) {
+                        row.classList.remove('missing');
+                    }
+                    const errorContainer = document.getElementById('errorContainer');
+                    if (errorContainer.innerHTML !== '') {
+                        let allChecked = true;
+                        document.querySelectorAll('.question-row').forEach(r => {
+                            const radio = r.querySelector('input[type="radio"]:checked');
+                            if (!radio) allChecked = false;
+                        });
+                        if (allChecked) {
+                            errorContainer.innerHTML = '';
+                        }
+                    }
+                }
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
