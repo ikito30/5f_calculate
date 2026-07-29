@@ -509,389 +509,435 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        (function() {
-            // ============================================
-            // 1. НАСТРОЙКА ПОДКЛЮЧЕНИЯ К SUPABASE
-            // ============================================
-            // ⚠️ ВСТАВЬТЕ СЮДА ВАШИ ДАННЫЕ ИЗ SUPABASE
-            const SUPABASE_URL = 'https://lvolwvivmrmbxpevixkp.supabase.co';     // Ваш URL
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I';      // Ваш anon ключ
+        // ============================================
+        // 1. НАСТРОЙКА ПОДКЛЮЧЕНИЯ К SUPABASE
+        // ============================================
+        // ⚠️ ВСТАВЬТЕ СЮДА ВАШИ ДАННЫЕ ИЗ SUPABASE
+        const SUPABASE_URL = 'https://lvolwvivmrmbxpevixkp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I';
 
-            // ============================================
-            // 2. ДАННЫЕ ОПРОСНИКА
-            // ============================================
-            const factors = [{
-                id: 'external',
-                title: 'Внешняя среда',
-                questions: [
-                    'В компании на регулярной основе проводится мониторинг внешней среды.',
-                    'Наиболее опасный конкурент компании определен, названы его сильные стороны.',
-                    'Все члены Команды знают основного конкурента и его сильные стороны.',
-                    'В компании сформулирована Философия и Миссия, отличающая её от конкурентов.',
-                    'Философия компании поощряет взаимоусиление, взаимопомощь, ориентацию на общую цель, ответственность за общий и личный результат.',
-                    'В компании сформулирована стратегия. Всем известны измеримые цели организации.',
-                    'Управленческая Команда является примером командного стиля для всей организации.',
-                    'В компании сформулированы стандарты поведения сотрудников, обязательные для всех.',
-                    'Система оплаты труда зависит не только от индивидуальной результативности, но и от общей результативности всей Команды.'
-                ]
-            }, {
-                id: 'goal',
-                title: 'Цель',
-                questions: [
-                    'Цели Команды известны всем членам Команды.',
-                    'Цели Команды амбициозны, их достижение требует напряжения.',
-                    'Цели Команды соответствуют критериям SMART.',
-                    'Реализация целей Команды требует усилий всех членов Команды.',
-                    'Цели охватывают как внешние, так и внутренние аспекты деятельности Команды.',
-                    'Цели контрастно выделяют Команду по отношению к конкурентам.',
-                    'Цели Команды сейчас включают новые по сравнению с предыдущим периодом параметры.',
-                    'Все члены Команды принимали участие в процессе формулирования целей Команды и в планировании их достижения.',
-                    'Вы лично воодушевлены целями Команды.'
-                ]
-            }, {
-                id: 'composition',
-                title: 'Состав',
-                questions: [
-                    'Состав Команды разнороден по полу, возрасту и опыту.',
-                    'Уровень компетенций каждого из членов Команды достаточен для реализации им своих функций.',
-                    'Вклады каждого члена Команды в общий результат очевидны и симметричны.',
-                    'Все члены Команды разделяют общие цели и прикладывают усилия для их достижения.',
-                    'Индивидуальные ценности никого из членов Команды не входят в противоречие с Философией Компании.',
-                    'Большим авторитетом в Команде пользуются люди с высокой результативностью и лояльностью Компании.',
-                    'Члены Команды, пользующиеся большим авторитетом, поддерживают Лидера и других коллег, которые исполняют роль лидера.',
-                    'В составе Команды представлены все командные роли, позволяющие организовать командную работу.',
-                    'В Команде отсутствуют люди, проявляющие разрушительные командные роли более чем 25% времени совместной работы.'
-                ]
-            }, {
-                id: 'leader',
-                title: 'Лидер',
-                questions: [
-                    'Лидер является примером в реализации задач, стоящих перед Командой.',
-                    'Лидер является примером в выполнении функций постановки целей и планирования, контроля, делегирования.',
-                    'Лидер использует процедуры коллективного обсуждения и принятия решений: мозговые штурмы, обсуждение проблем, обмен опытом.',
-                    'Значительное время (более 30%) Лидер посвящает обучению и развитию других членов Команды.',
-                    'Лидер применяет различные стили управления в соответствующих ситуациях.',
-                    'Лидер является примером проявлений Ценностей Компании.',
-                    'Лидер превосходит большую часть членов Команды по уровню целеустремленности, решительности и инициативы.',
-                    'Лидер эффективен в роли мотиватора и координатора.',
-                    'В зависимости от содержания задачи лидерство передается наиболее компетентному члену Команды, Лидер берет на себя другие роли (включая роль исполнителя).'
-                ]
-            }, {
-                id: 'interaction',
-                title: 'Взаимодействие',
-                questions: [
-                    'На проблемных совещаниях участники Команды открыто высказывают различные точки зрения.',
-                    'Члены Команды активно помогают развитию друг друга: осуществляют наставничество, информационный обмен, супервизию деятельности друг друга, взаимопомощь.',
-                    'Участники Команды дают обратную связь друг другу конструктивно: на основе фактов, исключая личностную критику, с ориентацией на будущий результат.',
-                    'Процедура постановки целей в Команде предполагает участие всех членов Команды.',
-                    'После принятия решения все члены Команды поддерживают принятые решения, варианты открытого и скрытого саботажа исключены.',
-                    'Про каждого члена Команды известно, над какими задачами он работает в данный момент.',
-                    'В Команде описаны и известны всем основные процедуры совместной работы.',
-                    'Принятые процедуры согласованы со стоящими перед Командой целями.',
-                    'Все члены Команды постоянно соблюдают принятые стандарты взаимодействия.'
-                ]
-            }];
+        // ============================================
+        // 2. ДАННЫЕ ОПРОСНИКА
+        // ============================================
+        const factors = [{
+            id: 'external',
+            title: 'Внешняя среда',
+            questions: [
+                'В компании на регулярной основе проводится мониторинг внешней среды.',
+                'Наиболее опасный конкурент компании определен, названы его сильные стороны.',
+                'Все члены Команды знают основного конкурента и его сильные стороны.',
+                'В компании сформулирована Философия и Миссия, отличающая её от конкурентов.',
+                'Философия компании поощряет взаимоусиление, взаимопомощь, ориентацию на общую цель, ответственность за общий и личный результат.',
+                'В компании сформулирована стратегия. Всем известны измеримые цели организации.',
+                'Управленческая Команда является примером командного стиля для всей организации.',
+                'В компании сформулированы стандарты поведения сотрудников, обязательные для всех.',
+                'Система оплаты труда зависит не только от индивидуальной результативности, но и от общей результативности всей Команды.'
+            ]
+        }, {
+            id: 'goal',
+            title: 'Цель',
+            questions: [
+                'Цели Команды известны всем членам Команды.',
+                'Цели Команды амбициозны, их достижение требует напряжения.',
+                'Цели Команды соответствуют критериям SMART.',
+                'Реализация целей Команды требует усилий всех членов Команды.',
+                'Цели охватывают как внешние, так и внутренние аспекты деятельности Команды.',
+                'Цели контрастно выделяют Команду по отношению к конкурентам.',
+                'Цели Команды сейчас включают новые по сравнению с предыдущим периодом параметры.',
+                'Все члены Команды принимали участие в процессе формулирования целей Команды и в планировании их достижения.',
+                'Вы лично воодушевлены целями Команды.'
+            ]
+        }, {
+            id: 'composition',
+            title: 'Состав',
+            questions: [
+                'Состав Команды разнороден по полу, возрасту и опыту.',
+                'Уровень компетенций каждого из членов Команды достаточен для реализации им своих функций.',
+                'Вклады каждого члена Команды в общий результат очевидны и симметричны.',
+                'Все члены Команды разделяют общие цели и прикладывают усилия для их достижения.',
+                'Индивидуальные ценности никого из членов Команды не входят в противоречие с Философией Компании.',
+                'Большим авторитетом в Команде пользуются люди с высокой результативностью и лояльностью Компании.',
+                'Члены Команды, пользующиеся большим авторитетом, поддерживают Лидера и других коллег, которые исполняют роль лидера.',
+                'В составе Команды представлены все командные роли, позволяющие организовать командную работу.',
+                'В Команде отсутствуют люди, проявляющие разрушительные командные роли более чем 25% времени совместной работы.'
+            ]
+        }, {
+            id: 'leader',
+            title: 'Лидер',
+            questions: [
+                'Лидер является примером в реализации задач, стоящих перед Командой.',
+                'Лидер является примером в выполнении функций постановки целей и планирования, контроля, делегирования.',
+                'Лидер использует процедуры коллективного обсуждения и принятия решений: мозговые штурмы, обсуждение проблем, обмен опытом.',
+                'Значительное время (более 30%) Лидер посвящает обучению и развитию других членов Команды.',
+                'Лидер применяет различные стили управления в соответствующих ситуациях.',
+                'Лидер является примером проявлений Ценностей Компании.',
+                'Лидер превосходит большую часть членов Команды по уровню целеустремленности, решительности и инициативы.',
+                'Лидер эффективен в роли мотиватора и координатора.',
+                'В зависимости от содержания задачи лидерство передается наиболее компетентному члену Команды, Лидер берет на себя другие роли (включая роль исполнителя).'
+            ]
+        }, {
+            id: 'interaction',
+            title: 'Взаимодействие',
+            questions: [
+                'На проблемных совещаниях участники Команды открыто высказывают различные точки зрения.',
+                'Члены Команды активно помогают развитию друг друга: осуществляют наставничество, информационный обмен, супервизию деятельности друг друга, взаимопомощь.',
+                'Участники Команды дают обратную связь друг другу конструктивно: на основе фактов, исключая личностную критику, с ориентацией на будущий результат.',
+                'Процедура постановки целей в Команде предполагает участие всех членов Команды.',
+                'После принятия решения все члены Команды поддерживают принятые решения, варианты открытого и скрытого саботажа исключены.',
+                'Про каждого члена Команды известно, над какими задачами он работает в данный момент.',
+                'В Команде описаны и известны всем основные процедуры совместной работы.',
+                'Принятые процедуры согласованы со стоящими перед Командой целями.',
+                'Все члены Команды постоянно соблюдают принятые стандарты взаимодействия.'
+            ]
+        }];
 
-            // ============================================
-            // 3. TOAST УВЕДОМЛЕНИЯ
-            // ============================================
-            function showToast(message, type = 'success', duration = 4000) {
-                const toast = document.getElementById('toast');
-                toast.textContent = message;
-                toast.className = `toast ${type}`;
-                
-                // Показываем
-                setTimeout(() => toast.classList.add('show'), 10);
-                
-                // Скрываем через указанное время
-                setTimeout(() => toast.classList.remove('show'), duration);
+        // ============================================
+        // 3. TOAST УВЕДОМЛЕНИЯ
+        // ============================================
+        function showToast(message, type = 'success', duration = 4000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        // ============================================
+        // 4. ОТПРАВКА ДАННЫХ В SUPABASE
+        // ============================================
+        async function saveResultsToSupabase(results) {
+            if (!SUPABASE_URL || SUPABASE_URL === 'https://ваш-проект.supabase.co' ||
+                !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'ваш-anon-публичный-ключ') {
+                showToast('⚠️ Настройте SUPABASE_URL и SUPABASE_ANON_KEY в коде', 'error', 5000);
+                console.warn('❌ Данные для Supabase не настроены');
+                return false;
             }
 
-            // ============================================
-            // 4. ОТПРАВКА ДАННЫХ В SUPABASE
-            // ============================================
-            async function saveResultsToSupabase(results) {
-                // Проверяем, что URL и ключ настроены
-                if (!SUPABASE_URL || SUPABASE_URL === 'https://ваш-проект.supabase.co' ||
-                    !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'ваш-anon-публичный-ключ') {
-                    showToast('⚠️ Настройте SUPABASE_URL и SUPABASE_ANON_KEY в коде', 'error', 5000);
-                    console.warn('❌ Данные для Supabase не настроены');
-                    return false;
-                }
-
-                try {
-                    // Формируем данные для отправки
-                    const payload = {
-                        external_score: results.external || 0,
-                        goal_score: results.goal || 0,
-                        composition_score: results.composition || 0,
-                        leader_score: results.leader || 0,
-                        interaction_score: results.interaction || 0,
-                        user_agent: navigator.userAgent || 'неизвестно'
-                    };
-
-                    console.log('📤 Отправка данных в Supabase:', payload);
-
-                    // Отправляем POST-запрос к Supabase
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-
-                    // Проверяем ответ
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error('❌ Ошибка Supabase:', errorData);
-                        throw new Error(errorData.message || 'Ошибка сохранения');
-                    }
-
-                    const result = await response.json();
-                    console.log('✅ Данные сохранены:', result);
-                    showToast('✅ Результаты успешно сохранены в Supabase!', 'success');
-                    return true;
-
-                } catch (error) {
-                    console.error('❌ Ошибка отправки:', error);
-                    showToast('❌ Ошибка сохранения: ' + error.message, 'error', 5000);
-                    return false;
-                }
-            }
-
-            // ============================================
-            // 5. РЕНДЕР ВОПРОСОВ
-            // ============================================
-            const container = document.getElementById('factorsContainer');
-
-            function renderQuestions() {
-                let html = '';
-                factors.forEach((factor, fi) => {
-                    html += `<div class="factor" data-factor="${factor.id}">`;
-                    html += `<div class="factor-title">
-                                <h2>${factor.title}</h2>
-                                <div class="factor-avg" id="avg_${factor.id}">ср. <span>—</span></div>
-                            </div>`;
-                    html += `<div class="question-grid">`;
-
-                    factor.questions.forEach((q, qi) => {
-                        const qIndex = fi * 9 + qi;
-                        html += `
-                                <div class="question-row" id="row_${qIndex}">
-                                    <div class="question-text"><span class="qnum">${qi+1}.</span> ${q}</div>
-                                    <div class="rating-group" data-q="${qIndex}">
-                                        ${[4,3,2,1].map(val => `
-                                            <input type="radio" name="q${qIndex}" id="q${qIndex}_${val}" value="${val}" />
-                                            <label for="q${qIndex}_${val}">${val}</label>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            `;
-                    });
-
-                    html += `</div></div>`;
-                });
-                container.innerHTML = html;
-            }
-
-            // ============================================
-            // 6. ПРОВЕРКА ЗАПОЛНЕНИЯ + ПОДСВЕТКА
-            // ============================================
-            function validateAndCalculate() {
-                const messageContainer = document.getElementById('messageContainer');
-                let missingFields = [];
-                let allFilled = true;
-
-                // Убираем старые подсветки
-                document.querySelectorAll('.question-row.missing').forEach(row => {
-                    row.classList.remove('missing');
-                });
-
-                // Проверяем все поля
-                factors.forEach((factor, fi) => {
-                    for (let qi = 0; qi < 9; qi++) {
-                        const qIndex = fi * 9 + qi;
-                        const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
-                        let checked = false;
-                        for (const r of radios) {
-                            if (r.checked) {
-                                checked = true;
-                                break;
-                            }
-                        }
-                        if (!checked) {
-                            allFilled = false;
-                            missingFields.push(qIndex);
-                            const row = document.getElementById(`row_${qIndex}`);
-                            if (row) {
-                                row.classList.add('missing');
-                            }
-                        }
-                    }
-                });
-
-                // Если есть незаполненные поля
-                if (!allFilled) {
-                    const count = missingFields.length;
-                    messageContainer.innerHTML = `
-                        <div class="error-message">
-                            <span class="icon">!</span>
-                            <span>Заполните <strong>${count}</strong> ${getDeclension(count)}. Незаполненные поля выделены красным.</span>
-                        </div>
-                    `;
-                    
-                    // Скролл к первому незаполненному
-                    if (missingFields.length > 0) {
-                        const firstMissing = document.getElementById(`row_${missingFields[0]}`);
-                        if (firstMissing) {
-                            firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }
-                    
-                    // Очищаем средние
-                    factors.forEach(factor => {
-                        const el = document.getElementById(`avg_${factor.id}`);
-                        if (el) el.innerHTML = `ср. <span>—</span>`;
-                    });
-                    document.getElementById('summaryBlock').innerHTML = '';
-                    
-                    return false;
-                }
-
-                // Все заполнены - убираем сообщения об ошибках
-                messageContainer.innerHTML = '';
-                calculateResults();
-                return true;
-            }
-
-            // ============================================
-            // 7. СКЛОНЕНИЕ
-            // ============================================
-            function getDeclension(count) {
-                if (count % 100 >= 11 && count % 100 <= 19) return 'полей';
-                const last = count % 10;
-                if (last === 1) return 'поле';
-                if (last >= 2 && last <= 4) return 'поля';
-                return 'полей';
-            }
-
-            // ============================================
-            // 8. ПОДСЧЁТ И ОТПРАВКА
-            // ============================================
-            async function calculateResults() {
-                const results = {};
-                let allFilled = true;
-
-                // Собираем значения
-                factors.forEach((factor, fi) => {
-                    const values = [];
-                    for (let qi = 0; qi < 9; qi++) {
-                        const qIndex = fi * 9 + qi;
-                        const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
-                        let checked = false;
-                        for (const r of radios) {
-                            if (r.checked) {
-                                values.push(parseInt(r.value, 10));
-                                checked = true;
-                                break;
-                            }
-                        }
-                        if (!checked) allFilled = false;
-                    }
-
-                    if (values.length === 9) {
-                        const sum = values.reduce((a, b) => a + b, 0);
-                        const avg = sum / 9;
-                        results[factor.id] = Math.round(avg * 100) / 100;
-                    } else {
-                        results[factor.id] = null;
-                    }
-                });
-
-                // Обновляем отображение средних
-                factors.forEach(factor => {
-                    const el = document.getElementById(`avg_${factor.id}`);
-                    const val = results[factor.id];
-                    if (val !== null) {
-                        el.innerHTML = `ср. <span>${val}</span>`;
-                    } else {
-                        el.innerHTML = `ср. <span>—</span>`;
-                    }
-                });
-
-                // Если не все заполнены - выходим
-                if (!allFilled) {
-                    document.getElementById('summaryBlock').innerHTML = `
-                        <div class="summary-box" style="background:#f7f2ec; border:1px solid #d6cbbc;">
-                            <span style="color:#6f655b;">Заполните все пункты, чтобы увидеть итоговые средние.</span>
-                        </div>
-                    `;
-                    return;
-                }
-
-                // Показываем итоговые средние
-                let html = `<div class="summary-box">`;
-                const factorNames = {
-                    external: 'Внешняя среда',
-                    goal: 'Цель',
-                    composition: 'Состав',
-                    leader: 'Лидер',
-                    interaction: 'Взаимодействие'
+            try {
+                const payload = {
+                    external_score: results.external || 0,
+                    goal_score: results.goal || 0,
+                    composition_score: results.composition || 0,
+                    leader_score: results.leader || 0,
+                    interaction_score: results.interaction || 0,
+                    user_agent: navigator.userAgent || 'неизвестно'
                 };
-                factors.forEach(factor => {
-                    const val = results[factor.id];
-                    if (val !== null) {
-                        html += `<div class="summary-item">
-                                    <span class="label">${factorNames[factor.id] || factor.title}</span>
-                                    <strong>${val}</strong>
-                                </div>`;
-                    }
+
+                console.log('📤 Отправка данных в Supabase:', payload);
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(payload)
                 });
-                html += `</div>`;
-                document.getElementById('summaryBlock').innerHTML = html;
 
-                // ============================================
-                // 9. ОТПРАВКА В SUPABASE
-                // ============================================
-                // Отключаем кнопку на время отправки
-                const calcBtn = document.getElementById('calcBtn');
-                calcBtn.disabled = true;
-                calcBtn.innerHTML = '<span class="spinner"></span> Сохранение...';
-
-                try {
-                    await saveResultsToSupabase(results);
-                } catch (error) {
-                    console.error('Ошибка:', error);
-                } finally {
-                    // Включаем кнопку обратно
-                    calcBtn.disabled = false;
-                    calcBtn.innerHTML = 'Рассчитать результаты';
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('❌ Ошибка Supabase:', errorData);
+                    throw new Error(errorData.message || 'Ошибка сохранения');
                 }
-            }
 
-            // ============================================
-            // 10. СБРОС
-            // ============================================
-            function resetAll() {
-                const radios = document.querySelectorAll('input[type="radio"]');
-                radios.forEach(r => r.checked = false);
-                
-                document.querySelectorAll('.question-row.missing').forEach(row => {
-                    row.classList.remove('missing');
+                const result = await response.json();
+                console.log('✅ Данные сохранены:', result);
+                showToast('✅ Результаты успешно сохранены в Supabase!', 'success');
+                return true;
+
+            } catch (error) {
+                console.error('❌ Ошибка отправки:', error);
+                showToast('❌ Ошибка сохранения: ' + error.message, 'error', 5000);
+                return false;
+            }
+        }
+
+        // ============================================
+        // 5. РЕНДЕР ВОПРОСОВ
+        // ============================================
+        const container = document.getElementById('factorsContainer');
+
+        function renderQuestions() {
+            let html = '';
+            factors.forEach((factor, fi) => {
+                html += `<div class="factor" data-factor="${factor.id}">`;
+                html += `<div class="factor-title">
+                            <h2>${factor.title}</h2>
+                            <div class="factor-avg" id="avg_${factor.id}">ср. <span>—</span></div>
+                        </div>`;
+                html += `<div class="question-grid">`;
+
+                factor.questions.forEach((q, qi) => {
+                    const qIndex = fi * 9 + qi;
+                    html += `
+                            <div class="question-row" id="row_${qIndex}">
+                                <div class="question-text"><span class="qnum">${qi+1}.</span> ${q}</div>
+                                <div class="rating-group" data-q="${qIndex}">
+                                    ${[4,3,2,1].map(val => `
+                                        <input type="radio" name="q${qIndex}" id="q${qIndex}_${val}" value="${val}" />
+                                        <label for="q${qIndex}_${val}">${val}</label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
                 });
+
+                html += `</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // 6. СКЛОНЕНИЕ
+        // ============================================
+        function getDeclension(count) {
+            if (count % 100 >= 11 && count % 100 <= 19) return 'полей';
+            const last = count % 10;
+            if (last === 1) return 'поле';
+            if (last >= 2 && last <= 4) return 'поля';
+            return 'полей';
+        }
+
+        // ============================================
+        // 7. ПРОВЕРКА ЗАПОЛНЕНИЯ
+        // ============================================
+        function checkAllFilled() {
+            let allFilled = true;
+            const messageContainer = document.getElementById('messageContainer');
+            let missingFields = [];
+
+            // Убираем старые подсветки
+            document.querySelectorAll('.question-row.missing').forEach(row => {
+                row.classList.remove('missing');
+            });
+
+            // Проверяем все поля
+            factors.forEach((factor, fi) => {
+                for (let qi = 0; qi < 9; qi++) {
+                    const qIndex = fi * 9 + qi;
+                    const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
+                    let checked = false;
+                    for (const r of radios) {
+                        if (r.checked) {
+                            checked = true;
+                            break;
+                        }
+                    }
+                    if (!checked) {
+                        allFilled = false;
+                        missingFields.push(qIndex);
+                        const row = document.getElementById(`row_${qIndex}`);
+                        if (row) {
+                            row.classList.add('missing');
+                        }
+                    }
+                }
+            });
+
+            if (!allFilled) {
+                const count = missingFields.length;
+                messageContainer.innerHTML = `
+                    <div class="error-message">
+                        <span class="icon">!</span>
+                        <span>Заполните <strong>${count}</strong> ${getDeclension(count)}. Незаполненные поля выделены красным.</span>
+                    </div>
+                `;
                 
+                if (missingFields.length > 0) {
+                    const firstMissing = document.getElementById(`row_${missingFields[0]}`);
+                    if (firstMissing) {
+                        firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+                
+                // Очищаем средние
                 factors.forEach(factor => {
                     const el = document.getElementById(`avg_${factor.id}`);
                     if (el) el.innerHTML = `ср. <span>—</span>`;
                 });
+                document.getElementById('summaryBlock').innerHTML = '';
                 
+                return false;
+            }
+
+            messageContainer.innerHTML = '';
+            return true;
+        }
+
+        // ============================================
+        // 8. ПОДСЧЁТ РЕЗУЛЬТАТОВ
+        // ============================================
+        function calculateResults() {
+            const results = {};
+            let allFilled = true;
+
+            // Собираем значения
+            factors.forEach((factor, fi) => {
+                const values = [];
+                for (let qi = 0; qi < 9; qi++) {
+                    const qIndex = fi * 9 + qi;
+                    const radios = document.querySelectorAll(`input[name="q${qIndex}"]`);
+                    let checked = false;
+                    for (const r of radios) {
+                        if (r.checked) {
+                            values.push(parseInt(r.value, 10));
+                            checked = true;
+                            break;
+                        }
+                    }
+                    if (!checked) allFilled = false;
+                }
+
+                if (values.length === 9) {
+                    const sum = values.reduce((a, b) => a + b, 0);
+                    const avg = sum / 9;
+                    results[factor.id] = Math.round(avg * 100) / 100;
+                } else {
+                    results[factor.id] = null;
+                }
+            });
+
+            // Обновляем отображение средних
+            factors.forEach(factor => {
+                const el = document.getElementById(`avg_${factor.id}`);
+                const val = results[factor.id];
+                if (val !== null) {
+                    el.innerHTML = `ср. <span>${val}</span>`;
+                } else {
+                    el.innerHTML = `ср. <span>—</span>`;
+                }
+            });
+
+            if (!allFilled) {
                 document.getElementById('summaryBlock').innerHTML = `
                     <div class="summary-box" style="background:#f7f2ec; border:1px solid #d6cbbc;">
-                        <span style="color:#6f655b;">После оценки всех пунктов нажмите «Рассчитать результаты».</span>
+                        <span style="color:#6f655b;">Заполните все пункты, чтобы увидеть итоговые средние.</span>
                     </div>
                 `;
-                document.getElementById('messageContainer').inner
+                return null;
+            }
+
+            // Показываем итоговые средние
+            let html = `<div class="summary-box">`;
+            const factorNames = {
+                external: 'Внешняя среда',
+                goal: 'Цель',
+                composition: 'Состав',
+                leader: 'Лидер',
+                interaction: 'Взаимодействие'
+            };
+            factors.forEach(factor => {
+                const val = results[factor.id];
+                if (val !== null) {
+                    html += `<div class="summary-item">
+                                <span class="label">${factorNames[factor.id] || factor.title}</span>
+                                <strong>${val}</strong>
+                            </div>`;
+                }
+            });
+            html += `</div>`;
+            document.getElementById('summaryBlock').innerHTML = html;
+
+            return results;
+        }
+
+        // ============================================
+        // 9. ОСНОВНАЯ ФУНКЦИЯ - ВАЛИДАЦИЯ + РАСЧЁТ + ОТПРАВКА
+        // ============================================
+        async function handleCalculate() {
+            // Проверяем заполнение
+            const isFilled = checkAllFilled();
+            if (!isFilled) return;
+
+            // Считаем результаты
+            const results = calculateResults();
+            if (!results) return;
+
+            // Отправляем в Supabase
+            const calcBtn = document.getElementById('calcBtn');
+            calcBtn.disabled = true;
+            calcBtn.innerHTML = '<span class="spinner"></span> Сохранение...';
+
+            try {
+                await saveResultsToSupabase(results);
+            } catch (error) {
+                console.error('Ошибка:', error);
+            } finally {
+                calcBtn.disabled = false;
+                calcBtn.innerHTML = 'Рассчитать результаты';
+            }
+        }
+
+        // ============================================
+        // 10. СБРОС
+        // ============================================
+        function resetAll() {
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(r => r.checked = false);
+            
+            document.querySelectorAll('.question-row.missing').forEach(row => {
+                row.classList.remove('missing');
+            });
+            
+            factors.forEach(factor => {
+                const el = document.getElementById(`avg_${factor.id}`);
+                if (el) el.innerHTML = `ср. <span>—</span>`;
+            });
+            
+            document.getElementById('summaryBlock').innerHTML = `
+                <div class="summary-box" style="background:#f7f2ec; border:1px solid #d6cbbc;">
+                    <span style="color:#6f655b;">После оценки всех пунктов нажмите «Рассчитать результаты».</span>
+                </div>
+            `;
+            document.getElementById('messageContainer').innerHTML = '';
+        }
+
+        // ============================================
+        // 11. ОБРАБОТЧИКИ ИЗМЕНЕНИЙ
+        // ============================================
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.matches('input[type="radio"]')) {
+                const row = e.target.closest('.question-row');
+                if (row) {
+                    row.classList.remove('missing');
+                }
+                const messageContainer = document.getElementById('messageContainer');
+                if (messageContainer.innerHTML !== '') {
+                    let allChecked = true;
+                    document.querySelectorAll('.question-row').forEach(r => {
+                        const radio = r.querySelector('input[type="radio"]:checked');
+                        if (!radio) allChecked = false;
+                    });
+                    if (allChecked) {
+                        messageContainer.innerHTML = '';
+                    }
+                }
+            }
+        });
+
+        // ============================================
+        // 12. ИНИЦИАЛИЗАЦИЯ
+        // ============================================
+        // Рендерим вопросы
+        renderQuestions();
+
+        // Проверяем настройки Supabase
+        if (SUPABASE_URL === 'https://ваш-проект.supabase.co' || 
+            SUPABASE_ANON_KEY === 'ваш-anon-публичный-ключ') {
+            console.warn('⚠️ ВНИМАНИЕ: Данные для Supabase не настроены!');
+            console.warn('Вставьте ваш URL и anon ключ в переменные SUPABASE_URL и SUPABASE_ANON_KEY');
+        } else {
+            console.log('✅ Supabase настроен:', SUPABASE_URL);
+        }
+
+        // Назначаем обработчики
+        document.getElementById('calcBtn').addEventListener('click', handleCalculate);
+        document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+        // Начальное состояние
+        resetAll();
+    </script>
+</body>
+</html>
