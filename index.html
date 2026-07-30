@@ -483,7 +483,11 @@
             <span><span class="badge">2</span> лишь частично</span>
             <span><span class="badge">1</span> практически не реализовано</span>
         </div>
-
+	<div style="text-align: center; margin-top: 20px;">
+  		<a href="stats.html" style="color: #c8977f; text-decoration: none; font-weight: 500;">
+        Посмотреть статистику
+		</a>
+	</div>
         <div id="messageContainer"></div>
 
         <div id="factorsContainer"></div>
@@ -499,7 +503,11 @@
         </div>
 
         <div id="summaryBlock" style="margin-top: 30px;"></div>
-
+	<div style="text-align: center; margin-top: 20px;">
+  		<a href="stats.html" style="color: #c8977f; text-decoration: none; font-weight: 500;">
+        Посмотреть статистику
+		</a>
+	</div>
         <div class="footer-note">
             Опросник 5F · среднеарифметическое по каждому фактору
         </div>
@@ -924,8 +932,8 @@
         renderQuestions();
 
         // Проверяем настройки Supabase
-        if (SUPABASE_URL === 'https://ваш-проект.supabase.co' || 
-            SUPABASE_ANON_KEY === 'ваш-anon-публичный-ключ') {
+        if (SUPABASE_URL === 'https://lvolwvivmrmbxpevixkp.supabase.co' || 
+            SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I') {
             console.warn('⚠️ ВНИМАНИЕ: Данные для Supabase не настроены!');
             console.warn('Вставьте ваш URL и anon ключ в переменные SUPABASE_URL и SUPABASE_ANON_KEY');
         } else {

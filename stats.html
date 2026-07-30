@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Статистика опросника 5F</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f5f2ed;
+            font-family: 'Suisse Int\'l', 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 40px 45px;
+            border: 1px solid #e6ddd4;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2d2b2a;
+            margin-bottom: 6px;
+        }
+
+        h1 .copper {
+            color: #c8977f;
+        }
+
+        .subhead {
+            color: #4a4540;
+            font-size: 16px;
+            border-left: 4px solid #c8977f;
+            padding-left: 18px;
+            background: #f7f2ec;
+            border-radius: 0 12px 12px 0;
+            padding: 14px 20px;
+            margin: 16px 0 30px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: #f7f2ec;
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid #e6ddd4;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #c8977f;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #6f655b;
+            font-weight: 500;
+        }
+
+        .stat-card .sub-label {
+            font-size: 12px;
+            color: #a89b8e;
+        }
+
+        .factor-stats {
+            margin-top: 30px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 30px;
+        }
+
+        .factor-stats h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2d2b2a;
+        }
+
+        .factor-row {
+            display: grid;
+            grid-template-columns: 200px 1fr 80px;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 20px;
+            background: #faf8f5;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid #eae3da;
+            transition: background 0.2s;
+        }
+
+        .factor-row:hover {
+            background: #f3ede7;
+        }
+
+        .factor-name {
+            font-weight: 600;
+            color: #2d2b2a;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #eae3da;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #c8977f, #b07d65);
+            transition: width 1s ease;
+            width: 0%;
+        }
+
+        .factor-value {
+            font-weight: 700;
+            font-size: 18px;
+            color: #c8977f;
+            text-align: right;
+        }
+
+        .recent-results {
+            margin-top: 40px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 30px;
+        }
+
+        .recent-results h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2d2b2a;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table th {
+            background: #eae3da;
+            color: #2d2b2a;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eae3da;
+            color: #4a4540;
+        }
+
+        table tr:hover td {
+            background: #faf8f5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: #dff0d8;
+            color: #3c763d;
+        }
+
+        .badge-yellow {
+            background: #fcf8e3;
+            color: #8a6d3b;
+        }
+
+        .badge-red {
+            background: #fdf0ef;
+            color: #a94442;
+        }
+
+        .btn {
+            background: #c8977f;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 16px rgba(200, 151, 127, 0.25);
+        }
+
+        .btn:hover {
+            background: #b07d65;
+            transform: scale(1.01);
+            box-shadow: 0 6px 20px rgba(200, 151, 127, 0.35);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-back {
+            background: #dcd3c9;
+            color: #2d2b2a;
+            box-shadow: none;
+        }
+
+        .btn-back:hover {
+            background: #ccc0b3;
+            box-shadow: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6f655b;
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #eae3da;
+            border-top-color: #c8977f;
+            border-radius: 50%;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fdf0ef;
+            border: 1px solid #d9534f;
+            border-radius: 16px;
+            padding: 16px 24px;
+            color: #a94442;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .error-message .icon {
+            font-size: 24px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6f655b;
+        }
+
+        .no-data .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        @media (max-width: 720px) {
+            .container {
+                padding: 24px 18px;
+            }
+
+            .factor-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 16px;
+            }
+
+            .factor-value {
+                text-align: left;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-card .number {
+                font-size: 28px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-actions">
+            <div>
+                <h1>Статистика <span class="copper">опросника 5F</span></h1>
+                <div class="subhead">
+                    Средние значения по всем заполненным опросам
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-back" onclick="window.location.href='index.html'">← Назад к опроснику</button>
+                <button class="btn" id="refreshBtn" style="margin-left:10px;">🔄 Обновить</button>
+            </div>
+        </div>
+
+        <div id="statsContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Загрузка статистики...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 1. НАСТРОЙКА ПОДКЛЮЧЕНИЯ К SUPABASE
+        // ============================================
+        const SUPABASE_URL = 'https://lvolwvivmrmbxpevixkp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I';
+
+        // ============================================
+        // 2. НАЗВАНИЯ ФАКТОРОВ
+        // ============================================
+        const factorNames = {
+            external: 'Внешняя среда',
+            goal: 'Цель',
+            composition: 'Состав',
+            leader: 'Лидер',
+            interaction: 'Взаимодействие'
+        };
+
+        const factorColors = {
+            external: '#c8977f',
+            goal: '#8cb3b8',
+            composition: '#d4b88c',
+            leader: '#b88c8c',
+            interaction: '#8cb8a0'
+        };
+
+        // ============================================
+        // 3. ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE
+        // ============================================
+        async function loadStats() {
+            const content = document.getElementById('statsContent');
+            content.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка статистики...</p>
+                </div>
+            `;
+
+            try {
+                // Получаем все результаты
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    content.innerHTML = `
+                        <div class="no-data">
+                            <div class="icon">📊</div>
+                            <h3>Нет данных</h3>
+                            <p>Пока нет заполненных опросов. Пройдите опрос, чтобы увидеть статистику.</p>
+                            <button class="btn" onclick="window.location.href='index.html'" style="margin-top:20px;">
+                                Перейти к опроснику
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Вычисляем статистику
+                const stats = calculateStats(data);
+                renderStats(stats, data);
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                content.innerHTML = `
+                    <div class="error-message">
+                        <span class="icon">⚠️</span>
+                        <span>Ошибка загрузки статистики: ${error.message}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // 4. ВЫЧИСЛЕНИЕ СТАТИСТИКИ
+        // ============================================
+        function calculateStats(data) {
+            const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
+            const stats = {
+                total: data.length,
+                factors: {},
+                latest: data.slice(-5).reverse() // последние 5 результатов
+            };
+
+            factorKeys.forEach(key => {
+                const values = data
+                    .map(row => parseFloat(row[key + '_score']))
+                    .filter(v => !isNaN(v));
+
+                if (values.length === 0) {
+                    stats.factors[key] = { avg: 0, min: 0, max: 0, count: 0 };
+                    return;
+                }
+
+                const sum = values.reduce((a, b) => a + b, 0);
+                const avg = sum / values.length;
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+
+                stats.factors[key] = {
+                    avg: Math.round(avg * 100) / 100,
+                    min: Math.round(min * 100) / 100,
+                    max: Math.round(max * 100) / 100,
+                    count: values.length
+                };
+            });
+
+            // Общий средний балл
+            const allValues = factorKeys.flatMap(key => 
+                data.map(row => parseFloat(row[key + '_score'])).filter(v => !isNaN(v))
+            );
+            const totalSum = allValues.reduce((a, b) => a + b, 0);
+            stats.overall = Math.round((totalSum / allValues.length) * 100) / 100;
+
+            return stats;
+        }
+
+        // ============================================
+        // 5. ОТОБРАЖЕНИЕ СТАТИСТИКИ
+        // ============================================
+        function renderStats(stats, data) {
+            const content = document.getElementById('statsContent');
+
+            let html = '';
+
+            // Общие показатели
+            html += `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="number">${stats.total}</span>
+                        <span class="label">Всего опросов</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="number" style="color: #8cb3b8;">${stats.overall}</span>
+                        <span class="label">Общий средний балл</span>
+                        <span class="sub-label">из 4.0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="number" style="color: #d4b88c;">
+                            ${Object.values(stats.factors).reduce((max, f) => Math.max(max, f.avg), 0)}
+                        </span>
+                        <span class="label">Максимальный средний</span>
+                        <span class="sub-label">по факторам</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="number" style="color: #b88c8c;">
+                            ${Object.values(stats.factors).reduce((min, f) => Math.min(min, f.avg), 100)}
+                        </span>
+                        <span class="label">Минимальный средний</span>
+                        <span class="sub-label">по факторам</span>
+                    </div>
+                </div>
+            `;
+
+            // Средние по факторам
+            html += `
+                <div class="factor-stats">
+                    <h2>Средние баллы по факторам</h2>
+            `;
+
+            const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
+            const maxAvg = Math.max(...factorKeys.map(k => stats.factors[k].avg));
+
+            factorKeys.forEach(key => {
+                const f = stats.factors[key];
+                const percent = (f.avg / 4) * 100;
+                const barColor = factorColors[key] || '#c8977f';
+                const status = f.avg >= 3 ? '🟢' : f.avg >= 2.5 ? '🟡' : '🔴';
+                const statusText = f.avg >= 3 ? 'Сильная сторона' : f.avg >= 2.5 ? 'Требует внимания' : 'Критическая зона';
+
+                html += `
+                    <div class="factor-row">
+                        <div class="factor-name">
+                            ${status} ${factorNames[key] || key}
+                            <span style="font-size:12px; color:#a89b8e; font-weight:400;">
+                                (n=${f.count})
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: ${percent}%; background: ${barColor};"></div>
+                        </div>
+                        <div class="factor-value">
+                            ${f.avg}
+                            <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+
+            // Последние результаты
+            html += `
+                <div class="recent-results">
+                    <h2>Последние 5 результатов</h2>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Внешняя среда</th>
+                                    <th>Цель</th>
+                                    <th>Состав</th>
+                                    <th>Лидер</th>
+                                    <th>Взаимодействие</th>
+                                    <th>Общий</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            const latest = data.slice(-5).reverse();
+            latest.forEach(row => {
+                const date = new Date(row.created_at);
+                const dateStr = date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+                
+                const scores = {
+                    external: parseFloat(row.external_score) || 0,
+                    goal: parseFloat(row.goal_score) || 0,
+                    composition: parseFloat(row.composition_score) || 0,
+                    leader: parseFloat(row.leader_score) || 0,
+                    interaction: parseFloat(row.interaction_score) || 0
+                };
+                
+                const overall = (scores.external + scores.goal + scores.composition + scores.leader + scores.interaction) / 5;
+                const overallRound = Math.round(overall * 100) / 100;
+
+                const scoreColor = overall >= 3 ? '#3c763d' : overall >= 2.5 ? '#8a6d3b' : '#a94442';
+
+                html += `
+                    <tr>
+                        <td style="font-size:12px; color:#6f655b;">${dateStr}</td>
+                        <td>${scores.external}</td>
+                        <td>${scores.goal}</td>
+                        <td>${scores.composition}</td>
+                        <td>${scores.leader}</td>
+                        <td>${scores.interaction}</td>
+                        <td style="font-weight:700; color:${scoreColor};">${overallRound}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = html;
+
+            // Анимация прогресс-баров
+            setTimeout(() => {
+                document.querySelectorAll('.progress-bar .fill').forEach(el => {
+                    const width = el.style.width;
+                    el.style.width = '0%';
+                    setTimeout(() => {
+                        el.style.width = width;
+                    }, 100);
+                });
+            }, 200);
+        }
+
+        // ============================================
+        // 6. ИНИЦИАЛИЗАЦИЯ
+        // ============================================
+        document.addEventListener('DOMContentLoaded', loadStats);
+        document.getElementById('refreshBtn').addEventListener('click', loadStats);
+
+        // Проверка настроек
+        if (SUPABASE_URL === 'https://ваш-проект.supabase.co' || 
+            SUPABASE_ANON_KEY === 'ваш-anon-публичный-ключ') {
+            console.warn('⚠️ Настройте SUPABASE_URL и SUPABASE_ANON_KEY в stats.html');
+        }
+    </script>
+</body>
+</html>
