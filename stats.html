@@ -53,7 +53,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
@@ -87,8 +87,16 @@
         }
 
         .stat-card .sub-label {
-            font-size: 12px;
+            font-size: 13px;
             color: #a89b8e;
+            margin-top: 4px;
+        }
+
+        .stat-card .factor-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d2b2a;
+            margin-top: 4px;
         }
 
         .factor-stats {
@@ -125,6 +133,16 @@
             color: #2d2b2a;
         }
 
+        .factor-name .status-icon {
+            margin-right: 6px;
+        }
+
+        .factor-name .count {
+            font-size: 12px;
+            color: #a89b8e;
+            font-weight: 400;
+        }
+
         .progress-bar {
             height: 12px;
             background: #eae3da;
@@ -146,6 +164,20 @@
             font-size: 18px;
             color: #c8977f;
             text-align: right;
+        }
+
+        .factor-value .max-label {
+            font-size: 11px;
+            color: #3c763d;
+            font-weight: 600;
+            display: block;
+        }
+
+        .factor-value .min-label {
+            font-size: 11px;
+            color: #a94442;
+            font-weight: 600;
+            display: block;
         }
 
         .recent-results {
@@ -304,6 +336,16 @@
             gap: 16px;
         }
 
+        .highlight-max {
+            background: rgba(60, 118, 61, 0.08);
+            border-left: 4px solid #3c763d;
+        }
+
+        .highlight-min {
+            background: rgba(169, 68, 66, 0.08);
+            border-left: 4px solid #a94442;
+        }
+
         @media (max-width: 720px) {
             .container {
                 padding: 24px 18px;
@@ -320,7 +362,7 @@
             }
 
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr 1fr;
             }
 
             .stat-card .number {
@@ -374,11 +416,11 @@
         // ============================================
         // 1. НАСТРОЙКА ПОДКЛЮЧЕНИЯ К SUPABASE
         // ============================================
-        const SUPABASE_URL = 'https://lvolwvivmrmbxpevixkp.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I';
+        const SUPABASE_URL = 'https://ваш-проект.supabase.co';
+        const SUPABASE_ANON_KEY = 'ваш-anon-публичный-ключ';
 
         // ============================================
-        // 2. НАЗВАНИЯ ФАКТОРОВ
+        // 2. НАЗВАНИЯ ФАКТОРОВ И ИХ ЦВЕТА
         // ============================================
         const factorNames = {
             external: 'Внешняя среда',
@@ -396,6 +438,8 @@
             interaction: '#8cb8a0'
         };
 
+        const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
+
         // ============================================
         // 3. ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE
         // ============================================
@@ -409,7 +453,6 @@
             `;
 
             try {
-                // Получаем все результаты
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results?select=*`, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -437,7 +480,6 @@
                     return;
                 }
 
-                // Вычисляем статистику
                 const stats = calculateStats(data);
                 renderStats(stats, data);
 
@@ -456,11 +498,10 @@
         // 4. ВЫЧИСЛЕНИЕ СТАТИСТИКИ
         // ============================================
         function calculateStats(data) {
-            const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
             const stats = {
                 total: data.length,
                 factors: {},
-                latest: data.slice(-5).reverse() // последние 5 результатов
+                latest: data.slice(-5).reverse()
             };
 
             factorKeys.forEach(key => {
@@ -485,6 +526,27 @@
                     count: values.length
                 };
             });
+
+            // Находим фактор с максимальным и минимальным средним
+            let maxAvg = -Infinity;
+            let minAvg = Infinity;
+            let maxFactor = '';
+            let minFactor = '';
+
+            factorKeys.forEach(key => {
+                const avg = stats.factors[key].avg;
+                if (avg > maxAvg) {
+                    maxAvg = avg;
+                    maxFactor = key;
+                }
+                if (avg < minAvg && avg > 0) {
+                    minAvg = avg;
+                    minFactor = key;
+                }
+            });
+
+            stats.maxFactor = { key: maxFactor, name: factorNames[maxFactor], value: maxAvg };
+            stats.minFactor = { key: minFactor, name: factorNames[minFactor], value: minAvg };
 
             // Общий средний балл
             const allValues = factorKeys.flatMap(key => 
@@ -516,19 +578,15 @@
                         <span class="label">Общий средний балл</span>
                         <span class="sub-label">из 4.0</span>
                     </div>
-                    <div class="stat-card">
-                        <span class="number" style="color: #d4b88c;">
-                            ${Object.values(stats.factors).reduce((max, f) => Math.max(max, f.avg), 0)}
-                        </span>
+                    <div class="stat-card" style="border-left: 4px solid #3c763d;">
+                        <span class="number" style="color: #3c763d;">${stats.maxFactor.value}</span>
                         <span class="label">Максимальный средний</span>
-                        <span class="sub-label">по факторам</span>
+                        <div class="factor-name">🏆 ${stats.maxFactor.name}</div>
                     </div>
-                    <div class="stat-card">
-                        <span class="number" style="color: #b88c8c;">
-                            ${Object.values(stats.factors).reduce((min, f) => Math.min(min, f.avg), 100)}
-                        </span>
+                    <div class="stat-card" style="border-left: 4px solid #a94442;">
+                        <span class="number" style="color: #a94442;">${stats.minFactor.value}</span>
                         <span class="label">Минимальный средний</span>
-                        <span class="sub-label">по факторам</span>
+                        <div class="factor-name">📉 ${stats.minFactor.name}</div>
                     </div>
                 </div>
             `;
@@ -539,23 +597,47 @@
                     <h2>Средние баллы по факторам</h2>
             `;
 
-            const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
             const maxAvg = Math.max(...factorKeys.map(k => stats.factors[k].avg));
 
             factorKeys.forEach(key => {
                 const f = stats.factors[key];
                 const percent = (f.avg / 4) * 100;
                 const barColor = factorColors[key] || '#c8977f';
-                const status = f.avg >= 3 ? '🟢' : f.avg >= 2.5 ? '🟡' : '🔴';
-                const statusText = f.avg >= 3 ? 'Сильная сторона' : f.avg >= 2.5 ? 'Требует внимания' : 'Критическая зона';
+                
+                let statusIcon = '🟢';
+            let statusText = 'Сильная сторона';
+            if (f.avg < 2.5) {
+                statusIcon = '🔴';
+                statusText = 'Критическая зона';
+            } else if (f.avg < 3) {
+                statusIcon = '🟡';
+                statusText = 'Требует внимания';
+            }
+
+            // Определяем, является ли этот фактор максимальным или минимальным
+            const isMax = key === stats.maxFactor.key;
+            const isMin = key === stats.minFactor.key;
+            
+            let extraClass = '';
+            let extraBadge = '';
+            if (isMax && isMin) {
+                // Если только один фактор с данными
+                extraBadge = ' (единственный)';
+            } else if (isMax) {
+                extraClass = 'highlight-max';
+                extraBadge = ' 🏆 Максимум';
+            } else if (isMin) {
+                extraClass = 'highlight-min';
+                extraBadge = ' 📉 Минимум';
+            }
 
                 html += `
-                    <div class="factor-row">
+                    <div class="factor-row ${extraClass}">
                         <div class="factor-name">
-                            ${status} ${factorNames[key] || key}
-                            <span style="font-size:12px; color:#a89b8e; font-weight:400;">
-                                (n=${f.count})
-                            </span>
+                            <span class="status-icon">${statusIcon}</span>
+                            ${factorNames[key] || key}
+                            <span class="count">(n=${f.count})</span>
+                            ${extraBadge}
                         </div>
                         <div class="progress-bar">
                             <div class="fill" style="width: ${percent}%; background: ${barColor};"></div>
@@ -563,6 +645,9 @@
                         <div class="factor-value">
                             ${f.avg}
                             <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
+                            <span style="font-size:11px; color:#6f655b; font-weight:400; display:block;">
+                                ${statusText}
+                            </span>
                         </div>
                     </div>
                 `;
@@ -648,9 +733,9 @@
         document.addEventListener('DOMContentLoaded', loadStats);
         document.getElementById('refreshBtn').addEventListener('click', loadStats);
 
-        // Проверка настроек
-        if (SUPABASE_URL === 'https://ваш-проект.supabase.co' || 
-            SUPABASE_ANON_KEY === 'ваш-anon-публичный-ключ') {
+        if (SUPABASE_URL === 'https://lvolwvivmrmbxpevixkp.supabase.co' || 
+            SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I
+') {
             console.warn('⚠️ Настройте SUPABASE_URL и SUPABASE_ANON_KEY в stats.html');
         }
     </script>
