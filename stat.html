@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Статистика опросника 5F</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f5f2ed;
+            font-family: 'Suisse Int\'l', 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 40px 45px;
+            border: 1px solid #e6ddd4;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2d2b2a;
+            margin-bottom: 6px;
+        }
+
+        h1 .copper {
+            color: #c8977f;
+        }
+
+        .subhead {
+            color: #4a4540;
+            font-size: 16px;
+            border-left: 4px solid #c8977f;
+            padding-left: 18px;
+            background: #f7f2ec;
+            border-radius: 0 12px 12px 0;
+            padding: 14px 20px;
+            margin: 16px 0 30px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: #f7f2ec;
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid #e6ddd4;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #c8977f;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #6f655b;
+            font-weight: 500;
+        }
+
+        .stat-card .sub-label {
+            font-size: 13px;
+            color: #a89b8e;
+            margin-top: 4px;
+        }
+
+        .stat-card .factor-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d2b2a;
+            margin-top: 4px;
+        }
+
+        .factor-stats {
+            margin-top: 30px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 30px;
+        }
+
+        .factor-stats h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2d2b2a;
+        }
+
+        .factor-row {
+            display: grid;
+            grid-template-columns: 200px 1fr 80px;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 20px;
+            background: #faf8f5;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid #eae3da;
+            transition: background 0.2s;
+        }
+
+        .factor-row:hover {
+            background: #f3ede7;
+        }
+
+        .factor-row .factor-name {
+            font-weight: 600;
+            color: #2d2b2a;
+        }
+
+        .factor-row .factor-name .count {
+            font-size: 12px;
+            color: #a89b8e;
+            font-weight: 400;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #eae3da;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #c8977f, #b07d65);
+            transition: width 1s ease;
+            width: 0%;
+        }
+
+        .factor-value {
+            font-weight: 700;
+            font-size: 18px;
+            color: #c8977f;
+            text-align: right;
+        }
+
+        .recent-results {
+            margin-top: 40px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 30px;
+        }
+
+        .recent-results h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2d2b2a;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table th {
+            background: #eae3da;
+            color: #2d2b2a;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eae3da;
+            color: #4a4540;
+        }
+
+        table tr:hover td {
+            background: #faf8f5;
+        }
+
+        .btn {
+            background: #c8977f;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 16px rgba(200, 151, 127, 0.25);
+        }
+
+        .btn:hover {
+            background: #b07d65;
+            transform: scale(1.01);
+            box-shadow: 0 6px 20px rgba(200, 151, 127, 0.35);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-back {
+            background: #dcd3c9;
+            color: #2d2b2a;
+            box-shadow: none;
+        }
+
+        .btn-back:hover {
+            background: #ccc0b3;
+            box-shadow: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6f655b;
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #eae3da;
+            border-top-color: #c8977f;
+            border-radius: 50%;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background: #fdf0ef;
+            border: 1px solid #d9534f;
+            border-radius: 16px;
+            padding: 16px 24px;
+            color: #a94442;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .error-message .icon {
+            font-size: 24px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6f655b;
+        }
+
+        .no-data .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        /* ----- Стили для пирамиды ----- */
+        .pyramid-section {
+            margin-top: 40px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 30px;
+        }
+
+        .pyramid-section h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2d2b2a;
+        }
+
+        #pyramidContainer {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            background: #f5f2ed;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e6ddd4;
+        }
+
+        #pyramidContainer canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #pyramidContainer .label-renderer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        @media (max-width: 720px) {
+            .container {
+                padding: 24px 18px;
+            }
+
+            .factor-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 16px;
+            }
+
+            .factor-value {
+                text-align: left;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card .number {
+                font-size: 28px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th,
+            table td {
+                padding: 8px 10px;
+            }
+
+            #pyramidContainer {
+                height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-actions">
+            <div>
+                <h1>Статистика <span class="copper">опросника 5F</span></h1>
+                <div class="subhead">
+                    Средние значения по всем заполненным опросам
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-back" onclick="window.location.href='index.html'">← Назад к опроснику</button>
+                <button class="btn" id="refreshBtn" style="margin-left:10px;">Обновить</button>
+            </div>
+        </div>
+
+        <div id="statsContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Загрузка статистики...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ МОДУЛЬ С ПИРАМИДОЙ И ОСНОВНОЙ ЛОГИКОЙ ============ -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ----- Импорты Three.js -----
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+        // ----- Настройки Supabase (замените на свои) -----
+        const SUPABASE_URL = 'https://lvolwvivmrmbxpevixkp.supabase.co';
+	const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I';
+
+
+        // ----- Названия факторов -----
+        const factorNames = {
+            external: 'Внешняя среда',
+            goal: 'Цель',
+            composition: 'Состав',
+            leader: 'Лидер',
+            interaction: 'Взаимодействие'
+        };
+
+        const factorColors = {
+            external: '#c8977f',
+            goal: '#8cb3b8',
+            composition: '#d4b88c',
+            leader: '#b88c8c',
+            interaction: '#8cb8a0'
+        };
+
+        const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
+
+        // ----- Ссылки на элементы -----
+        const statsContent = document.getElementById('statsContent');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // ----- Глобальная ссылка на текущую пирамиду (для очистки) -----
+        let pyramidInstance = null;
+
+        // ================================================================
+        //  1. СОЗДАНИЕ ПИРАМИДЫ
+        // ================================================================
+        function createPyramid(stats, containerId) {
+            // Удаляем старую пирамиду, если есть
+            if (pyramidInstance) {
+                pyramidInstance.dispose();
+                pyramidInstance = null;
+            }
+
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Очищаем контейнер
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            // --- Извлекаем средние значения ---
+            const leaderAvg = stats.factors.leader?.avg ?? 0;
+            const interactionAvg = stats.factors.interaction?.avg ?? 0;
+            const compositionAvg = stats.factors.composition?.avg ?? 0;
+            const goalAvg = stats.factors.goal?.avg ?? 0;
+
+            // Если все нули — показываем сообщение
+            if (leaderAvg === 0 && interactionAvg === 0 && compositionAvg === 0 && goalAvg === 0) {
+                const msg = document.createElement('div');
+                msg.style.cssText =
+                    'display:flex; align-items:center; justify-content:center; height:100%; color:#6f655b; font-size:18px;';
+                msg.textContent = 'Недостаточно данных для построения пирамиды';
+                container.appendChild(msg);
+                return;
+            }
+
+            // --- Параметры пирамиды ---
+            const лидер = leaderAvg;
+            const взаимодействие = interactionAvg;
+            const Состав = compositionAvg;
+            const цель = goalAvg;
+
+            const angleСостав = 90;
+            const angleВзаимодействие = 90 + 120;
+            const angleЛидер = 90 + 240;
+            const toRad = deg => deg * Math.PI / 180;
+
+            const e1 = new THREE.Vector3(0, 0, 1);
+            const e2 = e1.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), toRad(angleВзаимодействие - angleСостав));
+            const e3 = e1.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), toRad(angleЛидер - angleСостав));
+
+            // Вершины (пользовательская пирамида)
+            const A = e1.clone().multiplyScalar(Состав);
+            const B = e2.clone().multiplyScalar(взаимодействие);
+            const C = e3.clone().multiplyScalar(лидер);
+            const centerX = (A.x + B.x + C.x) / 3;
+            const centerZ = (A.z + B.z + C.z) / 3;
+            const D = new THREE.Vector3(centerX, цель, centerZ);
+
+            const vertices = [A, B, C, D];
+            const vertexValues = [Состав, взаимодействие, лидер, цель];
+
+            // --- Сцена ---
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f2ed);
+
+            scene.add(new THREE.AmbientLight(0x404060));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(1, 2, 1);
+            scene.add(dirLight);
+            const backLight = new THREE.DirectionalLight(0xccddff, 0.5);
+            backLight.position.set(-1, 0.5, -1);
+            scene.add(backLight);
+
+            // --- Каркас пирамиды ---
+            const edgePairs = [
+                [0, 1],
+                [1, 2],
+                [2, 0],
+                [0, 3],
+                [1, 3],
+                [2, 3]
+            ];
+            const edgePoints = [];
+            edgePairs.forEach(pair => {
+                edgePoints.push(vertices[pair[0]].clone());
+                edgePoints.push(vertices[pair[1]].clone());
+            });
+            const edgeGeometry = new THREE.BufferGeometry();
+            const edgePositions = [];
+            edgePoints.forEach(v => edgePositions.push(v.x, v.y, v.z));
+            edgeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(edgePositions, 3));
+            const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x8B5A2B });
+            const edgeLines = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+            scene.add(edgeLines);
+
+            // --- Шарики на вершинах ---
+            const sphereRadius = 0.14;
+            const sphereMaterial = new THREE.MeshStandardMaterial({
+                color: 0x8B5A2B,
+                emissive: 0x5C3317,
+                emissiveIntensity: 0.2,
+                roughness: 0.4,
+                metalness: 0.6
+            });
+            vertices.forEach((v) => {
+                const sphere = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 16, 16), sphereMaterial);
+                sphere.position.copy(v);
+                scene.add(sphere);
+            });
+
+            // --- Идеальная пирамида (медная, прозрачная) ---
+            const side = 4;
+            const idealHeight = 4;
+            const r = side;
+            const idealA = e1.clone().multiplyScalar(r);
+            const idealB = e2.clone().multiplyScalar(r);
+            const idealC = e3.clone().multiplyScalar(r);
+            const idealD = new THREE.Vector3(0, idealHeight, 0);
+            const idealVertices = [idealA, idealB, idealC, idealD];
+
+            const idealGeometry = new THREE.BufferGeometry();
+            const idealPositions = [];
+            idealVertices.forEach(v => idealPositions.push(v.x, v.y, v.z));
+            idealGeometry.setAttribute('position', new THREE.Float32BufferAttribute(idealPositions, 3));
+            const idealIndices = [0, 1, 2, 0, 1, 3, 1, 2, 3, 2, 0, 3];
+            idealGeometry.setIndex(idealIndices);
+            idealGeometry.computeVertexNormals();
+
+            const idealMaterial = new THREE.MeshStandardMaterial({
+                color: 0xB87333,
+                side: THREE.DoubleSide,
+                flatShading: true,
+                transparent: true,
+                opacity: 0.2,
+                emissive: 0x8B4513,
+                emissiveIntensity: 0.1
+            });
+            const idealPyramid = new THREE.Mesh(idealGeometry, idealMaterial);
+            const idealEdges = new THREE.EdgesGeometry(idealGeometry);
+            const idealWireframe = new THREE.LineSegments(
+                idealEdges,
+                new THREE.LineBasicMaterial({ color: 0xCD7F32, transparent: true, opacity: 0.5 })
+            );
+            idealPyramid.add(idealWireframe);
+            scene.add(idealPyramid);
+
+            // --- Оси (в медных тонах, с изящными стрелками) ---
+            const allCoords = [
+                A.x, A.y, A.z, B.x, B.y, B.z, C.x, C.y, C.z, D.x, D.y, D.z,
+                idealA.x, idealA.y, idealA.z, idealB.x, idealB.y, idealB.z,
+                idealC.x, idealC.y, idealC.z, idealD.x, idealD.y, idealD.z
+            ];
+            const maxCoord = Math.max(...allCoords.map(Math.abs), 3.5);
+            const axisLength = maxCoord * 1.4;
+            const origin = new THREE.Vector3(0, 0, 0);
+
+            // Цвета осей (оттенки коричневого/медного)
+            const axisColors = [
+                0x8B5A2B, // Состав
+                0xA67B5B, // Взаимодействие
+                0xCD853F, // Лидер
+                0xD2691E  // Цель
+            ];
+
+            function createAxis(direction, color, label, value) {
+                const end = direction.clone().multiplyScalar(axisLength);
+                const points = [origin, end];
+                const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+                const materialLine = new THREE.LineDashedMaterial({
+                    color: color,
+                    dashSize: 0.15,
+                    gapSize: 0.1
+                });
+                const line = new THREE.Line(geometryLine, materialLine);
+                line.computeLineDistances();
+                scene.add(line);
+
+                // Стрелка-конус (более изящная)
+                const cone = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.08, 0.3, 8),
+                    new THREE.MeshBasicMaterial({ color: color })
+                );
+                const quat = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 1, 0),
+                    direction.clone().normalize()
+                );
+                cone.quaternion.copy(quat);
+                cone.position.copy(end);
+                scene.add(cone);
+
+                // Подпись оси (не жирный шрифт, с отступом)
+                const div = document.createElement('div');
+                div.textContent = `${label}`;
+                div.style.color = '#3d2b1f';
+                div.style.fontSize = '18px';
+                div.style.fontWeight = 'normal';
+                div.style.textShadow = '2px 2px 4px rgba(255,255,255,0.9)';
+                div.style.margin = '0 8px'; // отступ
+                div.className = 'axis-label';
+                const labelObj = new CSS2DObject(div);
+                // Увеличиваем отступ от конца оси
+                const offset = direction.clone().multiplyScalar(0.9);
+                labelObj.position.copy(end.clone().add(offset));
+                scene.add(labelObj);
+            }
+
+            createAxis(e1, axisColors[0], 'Состав', Состав);
+            createAxis(e2, axisColors[1], 'Взаимодействие', взаимодействие);
+            createAxis(e3, axisColors[2], 'Лидер', лидер);
+            createAxis(new THREE.Vector3(0, 1, 0), axisColors[3], 'Цель', цель);
+
+            // --- Подписи вершин (значения) - тоже в медных тонах ---
+            const vertexColors = ['#8B5A2B', '#A67B5B', '#CD853F', '#D2691E'];
+            vertices.forEach((v, i) => {
+                const div = document.createElement('div');
+                div.textContent = `${vertexValues[i].toFixed(2)}`;
+                div.style.color = vertexColors[i % vertexColors.length];
+                div.style.fontSize = '18px';
+                div.style.fontWeight = 'bold';
+                div.style.textShadow = '1px 1px 3px rgba(255,255,255,0.9)';
+                div.style.textAlign = 'center';
+                div.style.lineHeight = '1.4';
+                div.className = 'vertex-label';
+                const label = new CSS2DObject(div);
+
+                let offset = new THREE.Vector3(0.3, 0.3, 0.3);
+                if (i === 3) {
+                    offset.set(0, 0.6, 0);
+                } else {
+                    const dir = new THREE.Vector3().copy(v).sub(new THREE.Vector3(centerX, 0, centerZ));
+                    dir.y = 0;
+                    if (dir.length() > 0.01) {
+                        dir.normalize().multiplyScalar(0.5);
+                        offset.copy(dir);
+                        offset.y = 0.3;
+                    } else {
+                        offset.set(0.3, 0.3, 0.3);
+                    }
+                }
+                label.position.copy(v.clone().add(offset));
+                scene.add(label);
+            });
+
+            // --- Камера (орто) ---
+            const rect = container.getBoundingClientRect();
+            let width = container.clientWidth || rect.width || 600;
+            let height = container.clientHeight || rect.height || 400;
+
+            const frustumSize = maxCoord * 2.2;
+            const aspect = width / height;
+            const camera = new THREE.OrthographicCamera(
+                -frustumSize * aspect / 2,
+                frustumSize * aspect / 2,
+                frustumSize / 2,
+                -frustumSize / 2,
+                0.1, 100
+            );
+            const cameraRadius = maxCoord * 1.8;
+            camera.position.set(cameraRadius * 0.7, cameraRadius * 0.6, cameraRadius * 0.7);
+            camera.lookAt(0, 0, 0);
+
+            // --- Рендереры ---
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const labelRenderer = new CSS2DRenderer();
+            labelRenderer.setSize(width, height);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0';
+            labelRenderer.domElement.style.left = '0';
+            labelRenderer.domElement.style.pointerEvents = 'none';
+            labelRenderer.domElement.classList.add('label-renderer');
+            container.appendChild(labelRenderer.domElement);
+
+            // --- Управление с автовращением ---
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(centerX, Math.max(цель, idealHeight) / 2, centerZ);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.5;
+            controls.update();
+
+            // --- Анимация ---
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+                labelRenderer.render(scene, camera);
+            }
+            animate();
+
+            // --- Обработчик изменения размера окна ---
+            function onResize() {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                if (w === 0 || h === 0) return;
+                const newAspect = w / h;
+                camera.left = -frustumSize * newAspect / 2;
+                camera.right = frustumSize * newAspect / 2;
+                camera.top = frustumSize / 2;
+                camera.bottom = -frustumSize / 2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+                labelRenderer.setSize(w, h);
+            }
+            window.addEventListener('resize', onResize);
+
+            // --- Сохраняем объект для очистки ---
+            pyramidInstance = {
+                dispose: () => {
+                    window.removeEventListener('resize', onResize);
+                    renderer.dispose();
+                    labelRenderer.domElement.remove();
+                    if (renderer.domElement.parentNode) {
+                        renderer.domElement.parentNode.removeChild(renderer.domElement);
+                    }
+                    // Очищаем сцену
+                    while (scene.children.length > 0) {
+                        const child = scene.children[0];
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                        scene.remove(child);
+                    }
+                }
+            };
+        }
+
+        // ================================================================
+        //  2. ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE
+        // ================================================================
+        async function loadStats() {
+            statsContent.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Загрузка статистики...</p>
+                    </div>
+                `;
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    statsContent.innerHTML = `
+                            <div class="no-data">
+                                <div class="icon">📊</div>
+                                <h3>Нет данных</h3>
+                                <p>Пока нет заполненных опросов. Пройдите опрос, чтобы увидеть статистику.</p>
+                                <button class="btn" onclick="window.location.href='index.html'" style="margin-top:20px;">
+                                    Перейти к опроснику
+                                </button>
+                            </div>
+                        `;
+                    const pyramidContainer = document.getElementById('pyramidContainer');
+                    if (pyramidContainer) pyramidContainer.style.display = 'none';
+                    return;
+                }
+
+                const stats = calculateStats(data);
+                renderStats(stats, data);
+
+                requestAnimationFrame(() => {
+                    const pyramidContainer = document.getElementById('pyramidContainer');
+                    if (pyramidContainer) {
+                        pyramidContainer.style.display = 'block';
+                        createPyramid(stats, 'pyramidContainer');
+                    }
+                });
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                statsContent.innerHTML = `
+                        <div class="error-message">
+                            <span class="icon">⚠️</span>
+                            <span>Ошибка загрузки статистики: ${error.message}</span>
+                        </div>
+                    `;
+                const pyramidContainer = document.getElementById('pyramidContainer');
+                if (pyramidContainer) pyramidContainer.style.display = 'none';
+            }
+        }
+
+        // ================================================================
+        //  3. ВЫЧИСЛЕНИЕ СТАТИСТИКИ
+        // ================================================================
+        function calculateStats(data) {
+            const stats = {
+                total: data.length,
+                factors: {}
+            };
+
+            factorKeys.forEach(key => {
+                const values = data
+                    .map(row => parseFloat(row[key + '_score']))
+                    .filter(v => !isNaN(v) && v > 0);
+
+                if (values.length === 0) {
+                    stats.factors[key] = { avg: 0, min: 0, max: 0, count: 0 };
+                    return;
+                }
+
+                const sum = values.reduce((a, b) => a + b, 0);
+                const avg = sum / values.length;
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+
+                stats.factors[key] = {
+                    avg: Math.round(avg * 100) / 100,
+                    min: Math.round(min * 100) / 100,
+                    max: Math.round(max * 100) / 100,
+                    count: values.length
+                };
+            });
+
+            let maxAvg = -Infinity;
+            let minAvg = Infinity;
+            let maxFactor = '';
+            let minFactor = '';
+
+            factorKeys.forEach(key => {
+                const avg = stats.factors[key].avg;
+                if (avg > maxAvg && avg > 0) {
+                    maxAvg = avg;
+                    maxFactor = key;
+                }
+                if (avg < minAvg && avg > 0) {
+                    minAvg = avg;
+                    minFactor = key;
+                }
+            });
+
+            stats.maxFactor = { key: maxFactor, name: factorNames[maxFactor] || maxFactor, value: maxAvg };
+            stats.minFactor = { key: minFactor, name: factorNames[minFactor] || minFactor, value: minAvg };
+
+            const allValues = factorKeys.flatMap(key =>
+                data.map(row => parseFloat(row[key + '_score'])).filter(v => !isNaN(v) && v > 0)
+            );
+            if (allValues.length > 0) {
+                const totalSum = allValues.reduce((a, b) => a + b, 0);
+                stats.overall = Math.round((totalSum / allValues.length) * 100) / 100;
+            } else {
+                stats.overall = 0;
+            }
+
+            return stats;
+        }
+
+        // ================================================================
+        //  4. ОТОБРАЖЕНИЕ СТАТИСТИКИ (включая блок пирамиды)
+        // ================================================================
+        function renderStats(stats, data) {
+            let html = '';
+
+            html += `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="number">${stats.total}</span>
+                            <span class="label">Всего опросов</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="number" style="color: #8cb3b8;">${stats.overall}</span>
+                            <span class="label">Общий средний балл</span>
+                            <span class="sub-label">из 4.0</span>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #3c763d;">
+                            <span class="number" style="color: #3c763d;">${stats.maxFactor.value}</span>
+                            <span class="label">Максимальный средний</span>
+                            <div class="factor-name">${stats.maxFactor.name}</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #a94442;">
+                            <span class="number" style="color: #a94442;">${stats.minFactor.value}</span>
+                            <span class="label">Минимальный средний</span>
+                            <div class="factor-name">${stats.minFactor.name}</div>
+                        </div>
+                    </div>
+                `;
+
+            html += `
+                    <div class="factor-stats">
+                        <h2>Средние баллы по факторам</h2>
+                `;
+
+            factorKeys.forEach(key => {
+                const f = stats.factors[key];
+                const percent = (f.avg / 4) * 100;
+                const barColor = factorColors[key] || '#c8977f';
+
+                html += `
+                        <div class="factor-row">
+                            <div class="factor-name">
+                                ${factorNames[key] || key}
+                                <span class="count">(n=${f.count})</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="fill" style="width: ${percent}%; background: ${barColor};"></div>
+                            </div>
+                            <div class="factor-value">
+                                ${f.avg > 0 ? f.avg : '—'}
+                                <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
+                            </div>
+                        </div>
+                    `;
+            });
+
+            html += `</div>`;
+
+            html += `
+                    <div class="recent-results">
+                        <h2>Последние 5 результатов</h2>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Внешняя среда</th>
+                                        <th>Цель</th>
+                                        <th>Состав</th>
+                                        <th>Лидер</th>
+                                        <th>Взаимодействие</th>
+                                        <th>Общий</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+            const latest = data.slice(-5).reverse();
+            latest.forEach(row => {
+                const date = new Date(row.created_at);
+                const dateStr = date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+                const scores = {
+                    external: parseFloat(row.external_score) || 0,
+                    goal: parseFloat(row.goal_score) || 0,
+                    composition: parseFloat(row.composition_score) || 0,
+                    leader: parseFloat(row.leader_score) || 0,
+                    interaction: parseFloat(row.interaction_score) || 0
+                };
+
+                const overall = (scores.external + scores.goal + scores.composition + scores.leader + scores.interaction) / 5;
+                const overallRound = Math.round(overall * 100) / 100;
+
+                const scoreColor = overall >= 3 ? '#3c763d' : overall >= 2.5 ? '#8a6d3b' : '#a94442';
+
+                html += `
+                        <tr>
+                            <td style="font-size:12px; color:#6f655b;">${dateStr}</td>
+                            <td>${scores.external}</td>
+                            <td>${scores.goal}</td>
+                            <td>${scores.composition}</td>
+                            <td>${scores.leader}</td>
+                            <td>${scores.interaction}</td>
+                            <td style="font-weight:700; color:${scoreColor};">${overallRound}</td>
+                        </tr>
+                    `;
+            });
+
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+            html += `
+                    <div class="pyramid-section">
+                        <h2>3D-пирамида факторов</h2>
+                        <div id="pyramidContainer"></div>
+                    </div>
+                `;
+
+            statsContent.innerHTML = html;
+        }
+
+        // ================================================================
+        //  5. ИНИЦИАЛИЗАЦИЯ
+        // ================================================================
+        loadStats();
+        refreshBtn.addEventListener('click', loadStats);
+
+        console.log('✅ Статистика и пирамида загружены');
+    </script>
+</body>
+</html>
