@@ -69,7 +69,7 @@
 
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
         }
 
         .stat-card .number {
@@ -128,16 +128,12 @@
             background: #f3ede7;
         }
 
-        .factor-name {
+        .factor-row .factor-name {
             font-weight: 600;
             color: #2d2b2a;
         }
 
-        .factor-name .status-icon {
-            margin-right: 6px;
-        }
-
-        .factor-name .count {
+        .factor-row .factor-name .count {
             font-size: 12px;
             color: #a89b8e;
             font-weight: 400;
@@ -164,20 +160,6 @@
             font-size: 18px;
             color: #c8977f;
             text-align: right;
-        }
-
-        .factor-value .max-label {
-            font-size: 11px;
-            color: #3c763d;
-            font-weight: 600;
-            display: block;
-        }
-
-        .factor-value .min-label {
-            font-size: 11px;
-            color: #a94442;
-            font-weight: 600;
-            display: block;
         }
 
         .recent-results {
@@ -218,29 +200,6 @@
 
         table tr:hover td {
             background: #faf8f5;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-green {
-            background: #dff0d8;
-            color: #3c763d;
-        }
-
-        .badge-yellow {
-            background: #fcf8e3;
-            color: #8a6d3b;
-        }
-
-        .badge-red {
-            background: #fdf0ef;
-            color: #a94442;
         }
 
         .btn {
@@ -297,7 +256,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .error-message {
@@ -336,14 +297,42 @@
             gap: 16px;
         }
 
-        .highlight-max {
-            background: rgba(60, 118, 61, 0.08);
-            border-left: 4px solid #3c763d;
+        /* ----- Стили для пирамиды ----- */
+        .pyramid-section {
+            margin-top: 40px;
+            border-top: 2px dashed #dcd3c9;
+            padding-top: 30px;
         }
 
-        .highlight-min {
-            background: rgba(169, 68, 66, 0.08);
-            border-left: 4px solid #a94442;
+        .pyramid-section h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #2d2b2a;
+        }
+
+        #pyramidContainer {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            background: #f5f2ed;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e6ddd4;
+        }
+
+        #pyramidContainer canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #pyramidContainer .label-renderer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
         @media (max-width: 720px) {
@@ -382,8 +371,13 @@
                 font-size: 12px;
             }
 
-            table th, table td {
+            table th,
+            table td {
                 padding: 8px 10px;
+            }
+
+            #pyramidContainer {
+                height: 320px;
             }
         }
     </style>
@@ -400,7 +394,7 @@
             </div>
             <div>
                 <button class="btn btn-back" onclick="window.location.href='index.html'">← Назад к опроснику</button>
-                <button class="btn" id="refreshBtn" style="margin-left:10px;">🔄 Обновить</button>
+                <button class="btn" id="refreshBtn" style="margin-left:10px;">Обновить</button>
             </div>
         </div>
 
@@ -412,16 +406,28 @@
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // 1. НАСТРОЙКА ПОДКЛЮЧЕНИЯ К SUPABASE
-        // ============================================
-        const SUPABASE_URL = 'https://ваш-проект.supabase.co';
-        const SUPABASE_ANON_KEY = 'ваш-anon-публичный-ключ';
+    <!-- ============ МОДУЛЬ С ПИРАМИДОЙ И ОСНОВНОЙ ЛОГИКОЙ ============ -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
 
-        // ============================================
-        // 2. НАЗВАНИЯ ФАКТОРОВ И ИХ ЦВЕТА
-        // ============================================
+    <script type="module">
+        // ----- Импорты Three.js -----
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+        // ----- Настройки Supabase (замените на свои) -----
+        const SUPABASE_URL = 'https://lvolwvivmrmbxpevixkp.supabase.co';
+	const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I';
+
+
+        // ----- Названия факторов -----
         const factorNames = {
             external: 'Внешняя среда',
             goal: 'Цель',
@@ -440,17 +446,352 @@
 
         const factorKeys = ['external', 'goal', 'composition', 'leader', 'interaction'];
 
-        // ============================================
-        // 3. ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE
-        // ============================================
+        // ----- Ссылки на элементы -----
+        const statsContent = document.getElementById('statsContent');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // ----- Глобальная ссылка на текущую пирамиду (для очистки) -----
+        let pyramidInstance = null;
+
+        // ================================================================
+        //  1. СОЗДАНИЕ ПИРАМИДЫ
+        // ================================================================
+        function createPyramid(stats, containerId) {
+            // Удаляем старую пирамиду, если есть
+            if (pyramidInstance) {
+                pyramidInstance.dispose();
+                pyramidInstance = null;
+            }
+
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Очищаем контейнер
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            // --- Извлекаем средние значения ---
+            const leaderAvg = stats.factors.leader?.avg ?? 0;
+            const interactionAvg = stats.factors.interaction?.avg ?? 0;
+            const compositionAvg = stats.factors.composition?.avg ?? 0;
+            const goalAvg = stats.factors.goal?.avg ?? 0;
+
+            // Если все нули — показываем сообщение
+            if (leaderAvg === 0 && interactionAvg === 0 && compositionAvg === 0 && goalAvg === 0) {
+                const msg = document.createElement('div');
+                msg.style.cssText =
+                    'display:flex; align-items:center; justify-content:center; height:100%; color:#6f655b; font-size:18px;';
+                msg.textContent = 'Недостаточно данных для построения пирамиды';
+                container.appendChild(msg);
+                return;
+            }
+
+            // --- Параметры пирамиды ---
+            const лидер = leaderAvg;
+            const взаимодействие = interactionAvg;
+            const Состав = compositionAvg;
+            const цель = goalAvg;
+
+            const angleСостав = 90;
+            const angleВзаимодействие = 90 + 120;
+            const angleЛидер = 90 + 240;
+            const toRad = deg => deg * Math.PI / 180;
+
+            const e1 = new THREE.Vector3(0, 0, 1);
+            const e2 = e1.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), toRad(angleВзаимодействие - angleСостав));
+            const e3 = e1.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), toRad(angleЛидер - angleСостав));
+
+            // Вершины (пользовательская пирамида)
+            const A = e1.clone().multiplyScalar(Состав);
+            const B = e2.clone().multiplyScalar(взаимодействие);
+            const C = e3.clone().multiplyScalar(лидер);
+            const centerX = (A.x + B.x + C.x) / 3;
+            const centerZ = (A.z + B.z + C.z) / 3;
+            const D = new THREE.Vector3(centerX, цель, centerZ);
+
+            const vertices = [A, B, C, D];
+            const vertexValues = [Состав, взаимодействие, лидер, цель];
+
+            // --- Сцена ---
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f2ed);
+
+            scene.add(new THREE.AmbientLight(0x404060));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(1, 2, 1);
+            scene.add(dirLight);
+            const backLight = new THREE.DirectionalLight(0xccddff, 0.5);
+            backLight.position.set(-1, 0.5, -1);
+            scene.add(backLight);
+
+            // --- Каркас пирамиды ---
+            const edgePairs = [
+                [0, 1],
+                [1, 2],
+                [2, 0],
+                [0, 3],
+                [1, 3],
+                [2, 3]
+            ];
+            const edgePoints = [];
+            edgePairs.forEach(pair => {
+                edgePoints.push(vertices[pair[0]].clone());
+                edgePoints.push(vertices[pair[1]].clone());
+            });
+            const edgeGeometry = new THREE.BufferGeometry();
+            const edgePositions = [];
+            edgePoints.forEach(v => edgePositions.push(v.x, v.y, v.z));
+            edgeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(edgePositions, 3));
+            const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x8B5A2B });
+            const edgeLines = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+            scene.add(edgeLines);
+
+            // --- Шарики на вершинах ---
+            const sphereRadius = 0.14;
+            const sphereMaterial = new THREE.MeshStandardMaterial({
+                color: 0x8B5A2B,
+                emissive: 0x5C3317,
+                emissiveIntensity: 0.2,
+                roughness: 0.4,
+                metalness: 0.6
+            });
+            vertices.forEach((v) => {
+                const sphere = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 16, 16), sphereMaterial);
+                sphere.position.copy(v);
+                scene.add(sphere);
+            });
+
+            // --- Идеальная пирамида (медная, прозрачная) ---
+            const side = 4;
+            const idealHeight = 4;
+            const r = side;
+            const idealA = e1.clone().multiplyScalar(r);
+            const idealB = e2.clone().multiplyScalar(r);
+            const idealC = e3.clone().multiplyScalar(r);
+            const idealD = new THREE.Vector3(0, idealHeight, 0);
+            const idealVertices = [idealA, idealB, idealC, idealD];
+
+            const idealGeometry = new THREE.BufferGeometry();
+            const idealPositions = [];
+            idealVertices.forEach(v => idealPositions.push(v.x, v.y, v.z));
+            idealGeometry.setAttribute('position', new THREE.Float32BufferAttribute(idealPositions, 3));
+            const idealIndices = [0, 1, 2, 0, 1, 3, 1, 2, 3, 2, 0, 3];
+            idealGeometry.setIndex(idealIndices);
+            idealGeometry.computeVertexNormals();
+
+            const idealMaterial = new THREE.MeshStandardMaterial({
+                color: 0xB87333,
+                side: THREE.DoubleSide,
+                flatShading: true,
+                transparent: true,
+                opacity: 0.2,
+                emissive: 0x8B4513,
+                emissiveIntensity: 0.1
+            });
+            const idealPyramid = new THREE.Mesh(idealGeometry, idealMaterial);
+            const idealEdges = new THREE.EdgesGeometry(idealGeometry);
+            const idealWireframe = new THREE.LineSegments(
+                idealEdges,
+                new THREE.LineBasicMaterial({ color: 0xCD7F32, transparent: true, opacity: 0.5 })
+            );
+            idealPyramid.add(idealWireframe);
+            scene.add(idealPyramid);
+
+            // --- Оси (в медных тонах, с изящными стрелками) ---
+            const allCoords = [
+                A.x, A.y, A.z, B.x, B.y, B.z, C.x, C.y, C.z, D.x, D.y, D.z,
+                idealA.x, idealA.y, idealA.z, idealB.x, idealB.y, idealB.z,
+                idealC.x, idealC.y, idealC.z, idealD.x, idealD.y, idealD.z
+            ];
+            const maxCoord = Math.max(...allCoords.map(Math.abs), 3.5);
+            const axisLength = maxCoord * 1.4;
+            const origin = new THREE.Vector3(0, 0, 0);
+
+            // Цвета осей (оттенки коричневого/медного)
+            const axisColors = [
+                0x8B5A2B, // Состав
+                0xA67B5B, // Взаимодействие
+                0xCD853F, // Лидер
+                0xD2691E  // Цель
+            ];
+
+            function createAxis(direction, color, label, value) {
+                const end = direction.clone().multiplyScalar(axisLength);
+                const points = [origin, end];
+                const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+                const materialLine = new THREE.LineDashedMaterial({
+                    color: color,
+                    dashSize: 0.15,
+                    gapSize: 0.1
+                });
+                const line = new THREE.Line(geometryLine, materialLine);
+                line.computeLineDistances();
+                scene.add(line);
+
+                // Стрелка-конус (более изящная)
+                const cone = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.08, 0.3, 8),
+                    new THREE.MeshBasicMaterial({ color: color })
+                );
+                const quat = new THREE.Quaternion().setFromUnitVectors(
+                    new THREE.Vector3(0, 1, 0),
+                    direction.clone().normalize()
+                );
+                cone.quaternion.copy(quat);
+                cone.position.copy(end);
+                scene.add(cone);
+
+                // Подпись оси (не жирный шрифт, с отступом)
+                const div = document.createElement('div');
+                div.textContent = `${label}`;
+                div.style.color = '#3d2b1f';
+                div.style.fontSize = '18px';
+                div.style.fontWeight = 'normal';
+                div.style.textShadow = '2px 2px 4px rgba(255,255,255,0.9)';
+                div.style.margin = '0 8px'; // отступ
+                div.className = 'axis-label';
+                const labelObj = new CSS2DObject(div);
+                // Увеличиваем отступ от конца оси
+                const offset = direction.clone().multiplyScalar(0.9);
+                labelObj.position.copy(end.clone().add(offset));
+                scene.add(labelObj);
+            }
+
+            createAxis(e1, axisColors[0], 'Состав', Состав);
+            createAxis(e2, axisColors[1], 'Взаимодействие', взаимодействие);
+            createAxis(e3, axisColors[2], 'Лидер', лидер);
+            createAxis(new THREE.Vector3(0, 1, 0), axisColors[3], 'Цель', цель);
+
+            // --- Подписи вершин (значения) - тоже в медных тонах ---
+            const vertexColors = ['#8B5A2B', '#A67B5B', '#CD853F', '#D2691E'];
+            vertices.forEach((v, i) => {
+                const div = document.createElement('div');
+                div.textContent = `${vertexValues[i].toFixed(2)}`;
+                div.style.color = vertexColors[i % vertexColors.length];
+                div.style.fontSize = '18px';
+                div.style.fontWeight = 'bold';
+                div.style.textShadow = '1px 1px 3px rgba(255,255,255,0.9)';
+                div.style.textAlign = 'center';
+                div.style.lineHeight = '1.4';
+                div.className = 'vertex-label';
+                const label = new CSS2DObject(div);
+
+                let offset = new THREE.Vector3(0.3, 0.3, 0.3);
+                if (i === 3) {
+                    offset.set(0, 0.6, 0);
+                } else {
+                    const dir = new THREE.Vector3().copy(v).sub(new THREE.Vector3(centerX, 0, centerZ));
+                    dir.y = 0;
+                    if (dir.length() > 0.01) {
+                        dir.normalize().multiplyScalar(0.5);
+                        offset.copy(dir);
+                        offset.y = 0.3;
+                    } else {
+                        offset.set(0.3, 0.3, 0.3);
+                    }
+                }
+                label.position.copy(v.clone().add(offset));
+                scene.add(label);
+            });
+
+            // --- Камера (орто) ---
+            const rect = container.getBoundingClientRect();
+            let width = container.clientWidth || rect.width || 600;
+            let height = container.clientHeight || rect.height || 400;
+
+            const frustumSize = maxCoord * 2.2;
+            const aspect = width / height;
+            const camera = new THREE.OrthographicCamera(
+                -frustumSize * aspect / 2,
+                frustumSize * aspect / 2,
+                frustumSize / 2,
+                -frustumSize / 2,
+                0.1, 100
+            );
+            const cameraRadius = maxCoord * 1.8;
+            camera.position.set(cameraRadius * 0.7, cameraRadius * 0.6, cameraRadius * 0.7);
+            camera.lookAt(0, 0, 0);
+
+            // --- Рендереры ---
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const labelRenderer = new CSS2DRenderer();
+            labelRenderer.setSize(width, height);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0';
+            labelRenderer.domElement.style.left = '0';
+            labelRenderer.domElement.style.pointerEvents = 'none';
+            labelRenderer.domElement.classList.add('label-renderer');
+            container.appendChild(labelRenderer.domElement);
+
+            // --- Управление с автовращением ---
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(centerX, Math.max(цель, idealHeight) / 2, centerZ);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.5;
+            controls.update();
+
+            // --- Анимация ---
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+                labelRenderer.render(scene, camera);
+            }
+            animate();
+
+            // --- Обработчик изменения размера окна ---
+            function onResize() {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                if (w === 0 || h === 0) return;
+                const newAspect = w / h;
+                camera.left = -frustumSize * newAspect / 2;
+                camera.right = frustumSize * newAspect / 2;
+                camera.top = frustumSize / 2;
+                camera.bottom = -frustumSize / 2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+                labelRenderer.setSize(w, h);
+            }
+            window.addEventListener('resize', onResize);
+
+            // --- Сохраняем объект для очистки ---
+            pyramidInstance = {
+                dispose: () => {
+                    window.removeEventListener('resize', onResize);
+                    renderer.dispose();
+                    labelRenderer.domElement.remove();
+                    if (renderer.domElement.parentNode) {
+                        renderer.domElement.parentNode.removeChild(renderer.domElement);
+                    }
+                    // Очищаем сцену
+                    while (scene.children.length > 0) {
+                        const child = scene.children[0];
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                        scene.remove(child);
+                    }
+                }
+            };
+        }
+
+        // ================================================================
+        //  2. ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE
+        // ================================================================
         async function loadStats() {
-            const content = document.getElementById('statsContent');
-            content.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Загрузка статистики...</p>
-                </div>
-            `;
+            statsContent.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Загрузка статистики...</p>
+                    </div>
+                `;
 
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results?select=*`, {
@@ -467,47 +808,58 @@
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    content.innerHTML = `
-                        <div class="no-data">
-                            <div class="icon">📊</div>
-                            <h3>Нет данных</h3>
-                            <p>Пока нет заполненных опросов. Пройдите опрос, чтобы увидеть статистику.</p>
-                            <button class="btn" onclick="window.location.href='index.html'" style="margin-top:20px;">
-                                Перейти к опроснику
-                            </button>
-                        </div>
-                    `;
+                    statsContent.innerHTML = `
+                            <div class="no-data">
+                                <div class="icon">📊</div>
+                                <h3>Нет данных</h3>
+                                <p>Пока нет заполненных опросов. Пройдите опрос, чтобы увидеть статистику.</p>
+                                <button class="btn" onclick="window.location.href='index.html'" style="margin-top:20px;">
+                                    Перейти к опроснику
+                                </button>
+                            </div>
+                        `;
+                    const pyramidContainer = document.getElementById('pyramidContainer');
+                    if (pyramidContainer) pyramidContainer.style.display = 'none';
                     return;
                 }
 
                 const stats = calculateStats(data);
                 renderStats(stats, data);
 
+                requestAnimationFrame(() => {
+                    const pyramidContainer = document.getElementById('pyramidContainer');
+                    if (pyramidContainer) {
+                        pyramidContainer.style.display = 'block';
+                        createPyramid(stats, 'pyramidContainer');
+                    }
+                });
+
             } catch (error) {
                 console.error('Ошибка:', error);
-                content.innerHTML = `
-                    <div class="error-message">
-                        <span class="icon">⚠️</span>
-                        <span>Ошибка загрузки статистики: ${error.message}</span>
-                    </div>
-                `;
+                statsContent.innerHTML = `
+                        <div class="error-message">
+                            <span class="icon">⚠️</span>
+                            <span>Ошибка загрузки статистики: ${error.message}</span>
+                        </div>
+                    `;
+                const pyramidContainer = document.getElementById('pyramidContainer');
+                if (pyramidContainer) pyramidContainer.style.display = 'none';
             }
         }
 
-        // ============================================
-        // 4. ВЫЧИСЛЕНИЕ СТАТИСТИКИ
-        // ============================================
+        // ================================================================
+        //  3. ВЫЧИСЛЕНИЕ СТАТИСТИКИ
+        // ================================================================
         function calculateStats(data) {
             const stats = {
                 total: data.length,
-                factors: {},
-                latest: data.slice(-5).reverse()
+                factors: {}
             };
 
             factorKeys.forEach(key => {
                 const values = data
                     .map(row => parseFloat(row[key + '_score']))
-                    .filter(v => !isNaN(v));
+                    .filter(v => !isNaN(v) && v > 0);
 
                 if (values.length === 0) {
                     stats.factors[key] = { avg: 0, min: 0, max: 0, count: 0 };
@@ -527,7 +879,6 @@
                 };
             });
 
-            // Находим фактор с максимальным и минимальным средним
             let maxAvg = -Infinity;
             let minAvg = Infinity;
             let maxFactor = '';
@@ -535,7 +886,7 @@
 
             factorKeys.forEach(key => {
                 const avg = stats.factors[key].avg;
-                if (avg > maxAvg) {
+                if (avg > maxAvg && avg > 0) {
                     maxAvg = avg;
                     maxFactor = key;
                 }
@@ -545,141 +896,105 @@
                 }
             });
 
-            stats.maxFactor = { key: maxFactor, name: factorNames[maxFactor], value: maxAvg };
-            stats.minFactor = { key: minFactor, name: factorNames[minFactor], value: minAvg };
+            stats.maxFactor = { key: maxFactor, name: factorNames[maxFactor] || maxFactor, value: maxAvg };
+            stats.minFactor = { key: minFactor, name: factorNames[minFactor] || minFactor, value: minAvg };
 
-            // Общий средний балл
-            const allValues = factorKeys.flatMap(key => 
-                data.map(row => parseFloat(row[key + '_score'])).filter(v => !isNaN(v))
+            const allValues = factorKeys.flatMap(key =>
+                data.map(row => parseFloat(row[key + '_score'])).filter(v => !isNaN(v) && v > 0)
             );
-            const totalSum = allValues.reduce((a, b) => a + b, 0);
-            stats.overall = Math.round((totalSum / allValues.length) * 100) / 100;
+            if (allValues.length > 0) {
+                const totalSum = allValues.reduce((a, b) => a + b, 0);
+                stats.overall = Math.round((totalSum / allValues.length) * 100) / 100;
+            } else {
+                stats.overall = 0;
+            }
 
             return stats;
         }
 
-        // ============================================
-        // 5. ОТОБРАЖЕНИЕ СТАТИСТИКИ
-        // ============================================
+        // ================================================================
+        //  4. ОТОБРАЖЕНИЕ СТАТИСТИКИ (включая блок пирамиды)
+        // ================================================================
         function renderStats(stats, data) {
-            const content = document.getElementById('statsContent');
-
             let html = '';
 
-            // Общие показатели
             html += `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="number">${stats.total}</span>
-                        <span class="label">Всего опросов</span>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="number">${stats.total}</span>
+                            <span class="label">Всего опросов</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="number" style="color: #8cb3b8;">${stats.overall}</span>
+                            <span class="label">Общий средний балл</span>
+                            <span class="sub-label">из 4.0</span>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #3c763d;">
+                            <span class="number" style="color: #3c763d;">${stats.maxFactor.value}</span>
+                            <span class="label">Максимальный средний</span>
+                            <div class="factor-name">${stats.maxFactor.name}</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #a94442;">
+                            <span class="number" style="color: #a94442;">${stats.minFactor.value}</span>
+                            <span class="label">Минимальный средний</span>
+                            <div class="factor-name">${stats.minFactor.name}</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <span class="number" style="color: #8cb3b8;">${stats.overall}</span>
-                        <span class="label">Общий средний балл</span>
-                        <span class="sub-label">из 4.0</span>
-                    </div>
-                    <div class="stat-card" style="border-left: 4px solid #3c763d;">
-                        <span class="number" style="color: #3c763d;">${stats.maxFactor.value}</span>
-                        <span class="label">Максимальный средний</span>
-                        <div class="factor-name">🏆 ${stats.maxFactor.name}</div>
-                    </div>
-                    <div class="stat-card" style="border-left: 4px solid #a94442;">
-                        <span class="number" style="color: #a94442;">${stats.minFactor.value}</span>
-                        <span class="label">Минимальный средний</span>
-                        <div class="factor-name">📉 ${stats.minFactor.name}</div>
-                    </div>
-                </div>
-            `;
+                `;
 
-            // Средние по факторам
             html += `
-                <div class="factor-stats">
-                    <h2>Средние баллы по факторам</h2>
-            `;
-
-            const maxAvg = Math.max(...factorKeys.map(k => stats.factors[k].avg));
+                    <div class="factor-stats">
+                        <h2>Средние баллы по факторам</h2>
+                `;
 
             factorKeys.forEach(key => {
                 const f = stats.factors[key];
                 const percent = (f.avg / 4) * 100;
                 const barColor = factorColors[key] || '#c8977f';
-                
-                let statusIcon = '🟢';
-            let statusText = 'Сильная сторона';
-            if (f.avg < 2.5) {
-                statusIcon = '🔴';
-                statusText = 'Критическая зона';
-            } else if (f.avg < 3) {
-                statusIcon = '🟡';
-                statusText = 'Требует внимания';
-            }
-
-            // Определяем, является ли этот фактор максимальным или минимальным
-            const isMax = key === stats.maxFactor.key;
-            const isMin = key === stats.minFactor.key;
-            
-            let extraClass = '';
-            let extraBadge = '';
-            if (isMax && isMin) {
-                // Если только один фактор с данными
-                extraBadge = ' (единственный)';
-            } else if (isMax) {
-                extraClass = 'highlight-max';
-                extraBadge = ' 🏆 Максимум';
-            } else if (isMin) {
-                extraClass = 'highlight-min';
-                extraBadge = ' 📉 Минимум';
-            }
 
                 html += `
-                    <div class="factor-row ${extraClass}">
-                        <div class="factor-name">
-                            <span class="status-icon">${statusIcon}</span>
-                            ${factorNames[key] || key}
-                            <span class="count">(n=${f.count})</span>
-                            ${extraBadge}
+                        <div class="factor-row">
+                            <div class="factor-name">
+                                ${factorNames[key] || key}
+                                <span class="count">(n=${f.count})</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="fill" style="width: ${percent}%; background: ${barColor};"></div>
+                            </div>
+                            <div class="factor-value">
+                                ${f.avg > 0 ? f.avg : '—'}
+                                <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
+                            </div>
                         </div>
-                        <div class="progress-bar">
-                            <div class="fill" style="width: ${percent}%; background: ${barColor};"></div>
-                        </div>
-                        <div class="factor-value">
-                            ${f.avg}
-                            <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
-                            <span style="font-size:11px; color:#6f655b; font-weight:400; display:block;">
-                                ${statusText}
-                            </span>
-                        </div>
-                    </div>
-                `;
+                    `;
             });
 
             html += `</div>`;
 
-            // Последние результаты
             html += `
-                <div class="recent-results">
-                    <h2>Последние 5 результатов</h2>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Дата</th>
-                                    <th>Внешняя среда</th>
-                                    <th>Цель</th>
-                                    <th>Состав</th>
-                                    <th>Лидер</th>
-                                    <th>Взаимодействие</th>
-                                    <th>Общий</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
+                    <div class="recent-results">
+                        <h2>Последние 5 результатов</h2>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Внешняя среда</th>
+                                        <th>Цель</th>
+                                        <th>Состав</th>
+                                        <th>Лидер</th>
+                                        <th>Взаимодействие</th>
+                                        <th>Общий</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
 
             const latest = data.slice(-5).reverse();
             latest.forEach(row => {
                 const date = new Date(row.created_at);
-                const dateStr = date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
-                
+                const dateStr = date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
                 const scores = {
                     external: parseFloat(row.external_score) || 0,
                     goal: parseFloat(row.goal_score) || 0,
@@ -687,57 +1002,49 @@
                     leader: parseFloat(row.leader_score) || 0,
                     interaction: parseFloat(row.interaction_score) || 0
                 };
-                
+
                 const overall = (scores.external + scores.goal + scores.composition + scores.leader + scores.interaction) / 5;
                 const overallRound = Math.round(overall * 100) / 100;
 
                 const scoreColor = overall >= 3 ? '#3c763d' : overall >= 2.5 ? '#8a6d3b' : '#a94442';
 
                 html += `
-                    <tr>
-                        <td style="font-size:12px; color:#6f655b;">${dateStr}</td>
-                        <td>${scores.external}</td>
-                        <td>${scores.goal}</td>
-                        <td>${scores.composition}</td>
-                        <td>${scores.leader}</td>
-                        <td>${scores.interaction}</td>
-                        <td style="font-weight:700; color:${scoreColor};">${overallRound}</td>
-                    </tr>
-                `;
+                        <tr>
+                            <td style="font-size:12px; color:#6f655b;">${dateStr}</td>
+                            <td>${scores.external}</td>
+                            <td>${scores.goal}</td>
+                            <td>${scores.composition}</td>
+                            <td>${scores.leader}</td>
+                            <td>${scores.interaction}</td>
+                            <td style="font-weight:700; color:${scoreColor};">${overallRound}</td>
+                        </tr>
+                    `;
             });
 
             html += `
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            content.innerHTML = html;
+            html += `
+                    <div class="pyramid-section">
+                        <h2>3D-пирамида факторов</h2>
+                        <div id="pyramidContainer"></div>
+                    </div>
+                `;
 
-            // Анимация прогресс-баров
-            setTimeout(() => {
-                document.querySelectorAll('.progress-bar .fill').forEach(el => {
-                    const width = el.style.width;
-                    el.style.width = '0%';
-                    setTimeout(() => {
-                        el.style.width = width;
-                    }, 100);
-                });
-            }, 200);
+            statsContent.innerHTML = html;
         }
 
-        // ============================================
-        // 6. ИНИЦИАЛИЗАЦИЯ
-        // ============================================
-        document.addEventListener('DOMContentLoaded', loadStats);
-        document.getElementById('refreshBtn').addEventListener('click', loadStats);
+        // ================================================================
+        //  5. ИНИЦИАЛИЗАЦИЯ
+        // ================================================================
+        loadStats();
+        refreshBtn.addEventListener('click', loadStats);
 
-        if (SUPABASE_URL === 'https://lvolwvivmrmbxpevixkp.supabase.co' || 
-            SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2x3dml2bXJtYnhwZXZpeGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjA3NDYsImV4cCI6MjEwMDg5Njc0Nn0.PNlZGLzmWsdDRzWI2XBzbNolBksR4NeTHUGReQzuX8I
-') {
-            console.warn('⚠️ Настройте SUPABASE_URL и SUPABASE_ANON_KEY в stats.html');
-        }
+        console.log('✅ Статистика и пирамида загружены');
     </script>
 </body>
 </html>
