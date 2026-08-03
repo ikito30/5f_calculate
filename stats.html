@@ -272,6 +272,16 @@
             box-shadow: none;
         }
 
+        .btn-danger {
+            background: #d9534f;
+            box-shadow: 0 4px 16px rgba(217, 83, 79, 0.25);
+        }
+
+        .btn-danger:hover {
+            background: #c9302c;
+            box-shadow: 0 6px 20px rgba(217, 83, 79, 0.35);
+        }
+
         .loading {
             text-align: center;
             padding: 60px 20px;
@@ -342,6 +352,141 @@
         .external-index-row .progress-bar .fill {
             background: linear-gradient(90deg, #8679A2, #6b5d8a);
         }
+
+        .footer-links {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #dcd3c9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #a89b8e;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #f7f2ec;
+            border: 1px solid transparent;
+        }
+
+        .footer-links a:hover {
+            color: #d9534f;
+            background: #fdf0ef;
+            border-color: #d9534f;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 40px 48px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .modal h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d2b2a;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .modal p {
+            color: #6f655b;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-actions .btn {
+            min-width: 120px;
+        }
+
+        .modal-actions .btn-secondary {
+            background: #dcd3c9;
+            color: #2d2b2a;
+            box-shadow: none;
+        }
+
+        .modal-actions .btn-secondary:hover {
+            background: #ccc0b3;
+            box-shadow: none;
+        }
+
+        .modal-actions .btn-danger-modal {
+            background: #d9534f;
+            box-shadow: 0 4px 16px rgba(217, 83, 79, 0.25);
+        }
+
+        .modal-actions .btn-danger-modal:hover {
+            background: #c9302c;
+            box-shadow: 0 6px 20px rgba(217, 83, 79, 0.35);
+        }
+
+        .success-message {
+            background: #dff0d8;
+            border: 1px solid #3c763d;
+            border-radius: 16px;
+            padding: 16px 24px;
+            color: #3c763d;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .success-message .icon {
+            font-size: 24px;
+        }
     </style>
 </head>
 <body>
@@ -364,6 +509,19 @@
         <div class="loading">
             <div class="spinner"></div>
             <p>Загрузка статистики...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal для подтверждения очистки -->
+<div class="modal-overlay" id="clearModal">
+    <div class="modal">
+        <div class="modal-icon">⚠️</div>
+        <h3>Очистка данных</h3>
+        <p>Вы уверены, что хотите удалить <strong>все</strong> данные опросов из базы?<br>Это действие невозможно отменить.</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="modalCancelBtn">Отмена</button>
+            <button class="btn btn-danger-modal" id="modalConfirmBtn">Удалить всё</button>
         </div>
     </div>
 </div>
@@ -405,11 +563,14 @@
 
     const statsContent = document.getElementById('statsContent');
     const refreshBtn = document.getElementById('refreshBtn');
+    const clearModal = document.getElementById('clearModal');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 
     let pyramidInstance = null;
     let currentExternalIndex = 0;
 
-    // ----- ПИРАМИДА (с точкой цвета #8679A2 на оси Цель, без подписи) -----
+    // ----- ПИРАМИДА -----
     function createPyramid(stats, containerId) {
         if (pyramidInstance) {
             pyramidInstance.dispose();
@@ -592,12 +753,10 @@
         createAxis(e3, axisColors[2], 'Лидер');
         createAxis(new THREE.Vector3(0, 1, 0), axisColors[3], 'Цель');
 
-        // ----- ТОЧКА ЦВЕТА #8679A2 НА ОСИ ЦЕЛЬ (без подписи) -----
         const clampedIndex = Math.max(0, Math.min(externalIndex, axisLength));
         const goalDirection = new THREE.Vector3(0, 1, 0);
         const pointPos = goalDirection.clone().multiplyScalar(clampedIndex);
 
-        // Основная сфера цвета #8679A2
         const pointMat = new THREE.MeshStandardMaterial({
             color: 0x8679A2,
             emissive: 0x8679A2,
@@ -609,7 +768,6 @@
         pointSphere.position.copy(pointPos);
         scene.add(pointSphere);
 
-        // Свечение (полупрозрачная сфера того же цвета)
         const glowMat = new THREE.MeshStandardMaterial({
             color: 0x8679A2,
             transparent: true,
@@ -620,8 +778,6 @@
         const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), glowMat);
         glowSphere.position.copy(pointPos);
         scene.add(glowSphere);
-
-        // ----- КОНЕЦ: точка цвета #8679A2 (подпись удалена) -----
 
         const vertexColors = ['#8B5A2B', '#A67B5B', '#CD853F', '#D2691E'];
         vertices.forEach((v, i) => {
@@ -767,7 +923,14 @@
                             Перейти к опроснику
                         </button>
                     </div>
+                    <div class="footer-links">
+                        <a id="clearDataLink">🗑️ Очистить данные</a>
+                    </div>
                 `;
+                const clearLink = document.getElementById('clearDataLink');
+                if (clearLink) {
+                    clearLink.addEventListener('click', openClearModal);
+                }
                 const pyramidContainer = document.getElementById('pyramidContainer');
                 if (pyramidContainer) pyramidContainer.style.display = 'none';
                 return;
@@ -775,6 +938,9 @@
 
             const stats = calculateStats(data);
             renderStats(stats);
+
+            // Добавляем ссылку на очистку после отрисовки статистики
+            addClearLink();
 
             requestAnimationFrame(() => {
                 const pyramidContainer = document.getElementById('pyramidContainer');
@@ -791,10 +957,131 @@
                     <span class="icon">⚠️</span>
                     <span>Ошибка загрузки статистики: ${error.message}</span>
                 </div>
+                <div class="footer-links">
+                    <a id="clearDataLink">🗑️ Очистить данные</a>
+                </div>
             `;
+            const clearLink = document.getElementById('clearDataLink');
+            if (clearLink) {
+                clearLink.addEventListener('click', openClearModal);
+            }
             const pyramidContainer = document.getElementById('pyramidContainer');
             if (pyramidContainer) pyramidContainer.style.display = 'none';
         }
+    }
+
+    // ----- ДОБАВЛЕНИЕ ССЫЛКИ НА ОЧИСТКУ -----
+    function addClearLink() {
+        const existingFooter = document.querySelector('.footer-links');
+        if (existingFooter) return;
+
+        const footer = document.createElement('div');
+        footer.className = 'footer-links';
+        footer.innerHTML = `<a id="clearDataLink">🗑️ Очистить данные</a>`;
+        statsContent.appendChild(footer);
+
+        const clearLink = document.getElementById('clearDataLink');
+        if (clearLink) {
+            clearLink.addEventListener('click', openClearModal);
+        }
+    }
+
+    // ----- МОДАЛЬНОЕ ОКНО -----
+    function openClearModal() {
+        clearModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeClearModal() {
+        clearModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    modalCancelBtn.addEventListener('click', closeClearModal);
+
+    clearModal.addEventListener('click', (e) => {
+        if (e.target === clearModal) {
+            closeClearModal();
+        }
+    });
+
+    // ----- ОЧИСТКА ДАННЫХ -----
+    modalConfirmBtn.addEventListener('click', async () => {
+        modalConfirmBtn.disabled = true;
+        modalConfirmBtn.textContent = 'Удаление...';
+
+        try {
+            // Получаем все записи для удаления
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_results?select=id`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Не удалось получить список записей');
+            }
+
+            const records = await response.json();
+
+            if (records.length === 0) {
+                closeClearModal();
+                showTemporaryMessage('Данные уже очищены', 'success');
+                await loadStats();
+                return;
+            }
+
+            // Удаляем все записи по одной (или можно использовать фильтр)
+            let deletedCount = 0;
+            for (const record of records) {
+                const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/survey_results?id=eq.${record.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (deleteResponse.ok) {
+                    deletedCount++;
+                } else {
+                    console.error('Ошибка удаления записи:', record.id);
+                }
+            }
+
+            closeClearModal();
+            showTemporaryMessage(`Удалено ${deletedCount} записей`, 'success');
+            await loadStats();
+
+        } catch (error) {
+            console.error('Ошибка очистки:', error);
+            closeClearModal();
+            showTemporaryMessage('Ошибка очистки данных: ' + error.message, 'error');
+        } finally {
+            modalConfirmBtn.disabled = false;
+            modalConfirmBtn.textContent = 'Удалить всё';
+        }
+    });
+
+    // ----- ВРЕМЕННОЕ СООБЩЕНИЕ -----
+    function showTemporaryMessage(message, type = 'success') {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
+        msgDiv.style.marginTop = '20px';
+        msgDiv.innerHTML = `
+            <span class="icon">${type === 'success' ? '✅' : '⚠️'}</span>
+            <span>${message}</span>
+        `;
+
+        const container = document.querySelector('.container');
+        container.insertBefore(msgDiv, statsContent);
+
+        setTimeout(() => {
+            if (msgDiv.parentNode) {
+                msgDiv.remove();
+            }
+        }, 4000);
     }
 
     // ----- ВЫЧИСЛЕНИЕ СТАТИСТИКИ -----
