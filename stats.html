@@ -331,16 +331,16 @@
 
         .external-index-row {
             background: #f3ede7;
-            border-left: 6px solid #c8977f;
+            border-left: 6px solid #8679A2;
         }
 
         .external-index-row .factor-value {
-            color: #b07d65;
+            color: #8679A2;
             font-weight: 800;
         }
 
         .external-index-row .progress-bar .fill {
-            background: linear-gradient(90deg, #b07d65, #8b5a2b);
+            background: linear-gradient(90deg, #8679A2, #6b5d8a);
         }
     </style>
 </head>
@@ -407,9 +407,9 @@
     const refreshBtn = document.getElementById('refreshBtn');
 
     let pyramidInstance = null;
-    let currentExternalIndex = 0; // будем хранить последнее значение для пирамиды
+    let currentExternalIndex = 0;
 
-    // ----- ПИРАМИДА (с красной точкой на оси Цель) -----
+    // ----- ПИРАМИДА (с точкой цвета #8679A2 на оси Цель) -----
     function createPyramid(stats, containerId) {
         if (pyramidInstance) {
             pyramidInstance.dispose();
@@ -428,7 +428,6 @@
         const compositionAvg = stats.factors.composition?.avg ?? 0;
         const goalAvg = stats.factors.goal?.avg ?? 0;
 
-        // Получаем показатель внешней среды (индекс)
         const externalIndex = stats.externalIndex !== undefined ? stats.externalIndex : 0;
         currentExternalIndex = externalIndex;
 
@@ -593,53 +592,52 @@
         createAxis(e3, axisColors[2], 'Лидер');
         createAxis(new THREE.Vector3(0, 1, 0), axisColors[3], 'Цель');
 
-        // ----- КРАСНАЯ ТОЧКА НА ОСИ ЦЕЛЬ (показатель внешней среды) -----
-        // Ограничиваем значение, чтобы точка не выходила за пределы видимости
+        // ----- ТОЧКА ЦВЕТА #8679A2 НА ОСИ ЦЕЛЬ (показатель внешней среды) -----
         const clampedIndex = Math.max(0, Math.min(externalIndex, axisLength));
         const goalDirection = new THREE.Vector3(0, 1, 0);
-        const redPointPos = goalDirection.clone().multiplyScalar(clampedIndex);
+        const pointPos = goalDirection.clone().multiplyScalar(clampedIndex);
 
-        // Сфера красного цвета
-        const redSphereMat = new THREE.MeshStandardMaterial({
-            color: 0xff0000,
-            emissive: 0xcc0000,
-            emissiveIntensity: 0.3,
+        // Основная сфера цвета #8679A2
+        const pointMat = new THREE.MeshStandardMaterial({
+            color: 0x8679A2,
+            emissive: 0x8679A2,
+            emissiveIntensity: 0.2,
             roughness: 0.3,
             metalness: 0.1
         });
-        const redSphere = new THREE.Mesh(new THREE.SphereGeometry(0.1, 20, 20), redSphereMat);
-        redSphere.position.copy(redPointPos);
-        scene.add(redSphere);
+        const pointSphere = new THREE.Mesh(new THREE.SphereGeometry(0.1, 20, 20), pointMat);
+        pointSphere.position.copy(pointPos);
+        scene.add(pointSphere);
 
-        // Маленькое свечение (пульсирующая точка) — добавляем вспомогательную сферу с большей прозрачностью
+        // Свечение (полупрозрачная сфера того же цвета)
         const glowMat = new THREE.MeshStandardMaterial({
-            color: 0xff3333,
+            color: 0x8679A2,
             transparent: true,
             opacity: 0.2,
-            emissive: 0xff0000,
+            emissive: 0x8679A2,
             emissiveIntensity: 0.5
         });
         const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), glowMat);
-        glowSphere.position.copy(redPointPos);
+        glowSphere.position.copy(pointPos);
         scene.add(glowSphere);
 
-        // Подпись рядом с красной точкой
+        // Подпись рядом с точкой
         const labelDiv = document.createElement('div');
         labelDiv.textContent = `Внеш. среда ${externalIndex.toFixed(2)}`;
-        labelDiv.style.color = '#cc0000';
+        labelDiv.style.color = '#8679A2';
         labelDiv.style.fontSize = '16px';
         labelDiv.style.fontWeight = 'bold';
         labelDiv.style.textShadow = '2px 2px 6px rgba(255,255,255,0.95)';
         labelDiv.style.background = 'rgba(255,255,255,0.7)';
         labelDiv.style.padding = '2px 10px';
         labelDiv.style.borderRadius = '12px';
-        labelDiv.style.border = '1px solid #cc0000';
+        labelDiv.style.border = '1px solid #8679A2';
         labelDiv.style.fontSize = '14px';
         const labelObj = new CSS2DObject(labelDiv);
-        labelObj.position.copy(redPointPos.clone().add(new THREE.Vector3(0.5, 0.3, 0)));
+        labelObj.position.copy(pointPos.clone().add(new THREE.Vector3(0.5, 0.3, 0)));
         scene.add(labelObj);
 
-        // ----- КОНЕЦ: красная точка -----
+        // ----- КОНЕЦ: точка цвета #8679A2 -----
 
         const vertexColors = ['#8B5A2B', '#A67B5B', '#CD853F', '#D2691E'];
         vertices.forEach((v, i) => {
@@ -845,7 +843,6 @@
             };
         });
 
-        // Вычисляем показатель внешней среды: 4 - avg(external)
         const externalAvg = stats.factors.external?.avg || 0;
         stats.externalIndex = Math.round((4 - externalAvg) * 100) / 100;
 
@@ -882,11 +879,10 @@
         return stats;
     }
 
-    // ----- ОТРИСОВКА СТАТИСТИКИ (БЕЗ ТАБЛИЦЫ "Последние 5") -----
+    // ----- ОТРИСОВКА СТАТИСТИКИ -----
     function renderStats(stats) {
         let html = '';
 
-        // Карточки
         html += `
             <div class="stats-grid">
                 <div class="stat-card">
@@ -911,7 +907,6 @@
             </div>
         `;
 
-        // Блок средних баллов по факторам
         html += `
             <div class="factor-stats">
                 <h2>Средние баллы по факторам</h2>
@@ -941,7 +936,6 @@
 
         html += `</div>`;
 
-        // Блок показателя внешней среды
         const externalAvg = stats.factors.external?.avg || 0;
         const extIndex = stats.externalIndex !== undefined ? stats.externalIndex : Math.round((4 - externalAvg) * 100) / 100;
         const extCount = stats.factors.external?.count || 0;
@@ -956,9 +950,9 @@
                         <span class="count">(n=${extCount})</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="fill" style="width: ${percentExt}%; background: linear-gradient(90deg, #b07d65, #8b5a2b);"></div>
+                        <div class="fill" style="width: ${percentExt}%; background: linear-gradient(90deg, #8679A2, #6b5d8a);"></div>
                     </div>
-                    <div class="factor-value" style="color:#8b5a2b;">
+                    <div class="factor-value" style="color:#8679A2;">
                         ${extIndex}
                         <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
                     </div>
@@ -966,7 +960,6 @@
             </div>
         `;
 
-        // Пирамида
         html += `
             <div class="pyramid-section">
                 <h2>3D-пирамида факторов</h2>
@@ -981,7 +974,7 @@
     loadStats();
     refreshBtn.addEventListener('click', loadStats);
 
-    console.log('✅ Статистика загружена (добавлена красная точка на оси Цель)');
+    console.log('✅ Статистика загружена (точка цвета #8679A2 на оси Цель)');
 </script>
 
 </body>
