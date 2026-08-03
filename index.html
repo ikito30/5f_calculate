@@ -483,11 +483,6 @@
             <span><span class="badge">2</span> лишь частично</span>
             <span><span class="badge">1</span> практически не реализовано</span>
         </div>
-	<div style="text-align: center; margin-top: 20px;">
-  		<a href="stats.html" style="color: #c8977f; text-decoration: none; font-weight: 500;">
-        Посмотреть статистику
-		</a>
-	</div>
         <div id="messageContainer"></div>
 
         <div id="factorsContainer"></div>
@@ -503,11 +498,6 @@
         </div>
 
         <div id="summaryBlock" style="margin-top: 30px;"></div>
-	<div style="text-align: center; margin-top: 20px;">
-  		<a href="stats.html" style="color: #c8977f; text-decoration: none; font-weight: 500;">
-        Посмотреть статистику
-		</a>
-	</div>
         <div class="footer-note">
             Опросник 5F · среднеарифметическое по каждому фактору
         </div>
@@ -652,7 +642,7 @@
 
                 const result = await response.json();
                 console.log('✅ Данные сохранены:', result);
-                showToast('✅ Результаты успешно сохранены в Supabase!', 'success');
+                showToast('✅ Результаты успешно сохранены!', 'success');
                 return true;
 
             } catch (error) {
