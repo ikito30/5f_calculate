@@ -407,8 +407,9 @@
     const refreshBtn = document.getElementById('refreshBtn');
 
     let pyramidInstance = null;
+    let currentExternalIndex = 0; // будем хранить последнее значение для пирамиды
 
-    // ----- ПИРАМИДА (без изменений) -----
+    // ----- ПИРАМИДА (с красной точкой на оси Цель) -----
     function createPyramid(stats, containerId) {
         if (pyramidInstance) {
             pyramidInstance.dispose();
@@ -426,6 +427,10 @@
         const interactionAvg = stats.factors.interaction?.avg ?? 0;
         const compositionAvg = stats.factors.composition?.avg ?? 0;
         const goalAvg = stats.factors.goal?.avg ?? 0;
+
+        // Получаем показатель внешней среды (индекс)
+        const externalIndex = stats.externalIndex !== undefined ? stats.externalIndex : 0;
+        currentExternalIndex = externalIndex;
 
         if (leaderAvg === 0 && interactionAvg === 0 && compositionAvg === 0 && goalAvg === 0) {
             const msg = document.createElement('div');
@@ -587,6 +592,54 @@
         createAxis(e2, axisColors[1], 'Взаимодействие');
         createAxis(e3, axisColors[2], 'Лидер');
         createAxis(new THREE.Vector3(0, 1, 0), axisColors[3], 'Цель');
+
+        // ----- КРАСНАЯ ТОЧКА НА ОСИ ЦЕЛЬ (показатель внешней среды) -----
+        // Ограничиваем значение, чтобы точка не выходила за пределы видимости
+        const clampedIndex = Math.max(0, Math.min(externalIndex, axisLength));
+        const goalDirection = new THREE.Vector3(0, 1, 0);
+        const redPointPos = goalDirection.clone().multiplyScalar(clampedIndex);
+
+        // Сфера красного цвета
+        const redSphereMat = new THREE.MeshStandardMaterial({
+            color: 0xff0000,
+            emissive: 0xcc0000,
+            emissiveIntensity: 0.3,
+            roughness: 0.3,
+            metalness: 0.1
+        });
+        const redSphere = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 20), redSphereMat);
+        redSphere.position.copy(redPointPos);
+        scene.add(redSphere);
+
+        // Маленькое свечение (пульсирующая точка) — добавляем вспомогательную сферу с большей прозрачностью
+        const glowMat = new THREE.MeshStandardMaterial({
+            color: 0xff3333,
+            transparent: true,
+            opacity: 0.2,
+            emissive: 0xff0000,
+            emissiveIntensity: 0.5
+        });
+        const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), glowMat);
+        glowSphere.position.copy(redPointPos);
+        scene.add(glowSphere);
+
+        // Подпись рядом с красной точкой
+        const labelDiv = document.createElement('div');
+        labelDiv.textContent = `Внеш. среда ${externalIndex.toFixed(2)}`;
+        labelDiv.style.color = '#cc0000';
+        labelDiv.style.fontSize = '16px';
+        labelDiv.style.fontWeight = 'bold';
+        labelDiv.style.textShadow = '2px 2px 6px rgba(255,255,255,0.95)';
+        labelDiv.style.background = 'rgba(255,255,255,0.7)';
+        labelDiv.style.padding = '2px 10px';
+        labelDiv.style.borderRadius = '12px';
+        labelDiv.style.border = '1px solid #cc0000';
+        labelDiv.style.fontSize = '14px';
+        const labelObj = new CSS2DObject(labelDiv);
+        labelObj.position.copy(redPointPos.clone().add(new THREE.Vector3(0.5, 0.3, 0)));
+        scene.add(labelObj);
+
+        // ----- КОНЕЦ: красная точка -----
 
         const vertexColors = ['#8B5A2B', '#A67B5B', '#CD853F', '#D2691E'];
         vertices.forEach((v, i) => {
@@ -792,7 +845,7 @@
             };
         });
 
-        // ---- ВЫЧИСЛЯЕМ ПОКАЗАТЕЛЬ ВНЕШНЕЙ СРЕДЫ: 4 - avg(external) ----
+        // Вычисляем показатель внешней среды: 4 - avg(external)
         const externalAvg = stats.factors.external?.avg || 0;
         stats.externalIndex = Math.round((4 - externalAvg) * 100) / 100;
 
@@ -888,7 +941,7 @@
 
         html += `</div>`;
 
-        // ----- НОВЫЙ БЛОК: ПОКАЗАТЕЛЬ ВНЕШНЕЙ СРЕДЫ (4 - средний балл external) -----
+        // Блок показателя внешней среды
         const externalAvg = stats.factors.external?.avg || 0;
         const extIndex = stats.externalIndex !== undefined ? stats.externalIndex : Math.round((4 - externalAvg) * 100) / 100;
         const extCount = stats.factors.external?.count || 0;
@@ -901,6 +954,9 @@
                     <div class="factor-name">
                         Внешняя среда (индекс)
                         <span class="count">(n=${extCount})</span>
+                        <span style="display:block; font-size:13px; font-weight:400; color:#6f655b; margin-top:4px;">
+                            4 − средний балл «Внешняя среда»
+                        </span>
                     </div>
                     <div class="progress-bar">
                         <div class="fill" style="width: ${percentExt}%; background: linear-gradient(90deg, #b07d65, #8b5a2b);"></div>
@@ -909,6 +965,9 @@
                         ${extIndex}
                         <span style="font-size:12px; color:#a89b8e; font-weight:400;">/4</span>
                     </div>
+                </div>
+                <div style="font-size:14px; color:#6f655b; margin: 8px 0 0 20px; padding: 4px 12px; background: #f7f2ec; border-radius: 30px; display: inline-block;">
+                    🧮 4 − ${externalAvg > 0 ? externalAvg : '—'} = ${extIndex}
                 </div>
             </div>
         `;
@@ -928,7 +987,7 @@
     loadStats();
     refreshBtn.addEventListener('click', loadStats);
 
-    console.log('✅ Статистика загружена (без таблицы последних результатов, добавлен показатель внешней среды)');
+    console.log('✅ Статистика загружена (добавлена красная точка на оси Цель)');
 </script>
 
 </body>
